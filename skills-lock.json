@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "10-andruia-skill-smith": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/10-andruia-skill-smith/SKILL.md",
+      "computedHash": "3e9ea08c9630a6df628f2b3879bf2888e399207d519bec03fd7b7fa629120d53"
+    },
     "denario": {
       "source": "sanand0/scientific-research",
       "sourceType": "github",
