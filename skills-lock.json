@@ -12,6 +12,12 @@
       "sourceType": "github",
       "skillPath": ".claude/skills/denario/SKILL.md",
       "computedHash": "9e86eeaf2a4e3bafa56894701495661262b1d52a503a6db1138784e06980c426"
+    },
+    "marketing-skills": {
+      "source": "alirezarezvani/claude-skills",
+      "sourceType": "github",
+      "skillPath": "marketing-skill/skills/marketing-skills/SKILL.md",
+      "computedHash": "01f6fa65c08e04cf9def4af4a0d3bac699cdcf888701e1b9f3d014116704bf1f"
     }
   }
 }
