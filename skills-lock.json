@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "denario": {
+      "source": "sanand0/scientific-research",
+      "sourceType": "github",
+      "skillPath": ".claude/skills/denario/SKILL.md",
+      "computedHash": "9e86eeaf2a4e3bafa56894701495661262b1d52a503a6db1138784e06980c426"
+    }
+  }
+}
