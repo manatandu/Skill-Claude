@@ -1,6 +1,12 @@
 {
   "version": 1,
   "skills": {
+    "007": {
+      "source": "sickn33/antigravity-awesome-skills",
+      "sourceType": "github",
+      "skillPath": "skills/007/SKILL.md",
+      "computedHash": "1d3fc3d030b7b9c3b96ada1581def61818e263c82f5eb8ec1de8911d73e8c643"
+    },
     "denario": {
       "source": "sanand0/scientific-research",
       "sourceType": "github",
