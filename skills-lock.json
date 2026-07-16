@@ -30,6 +30,12 @@
       "sourceType": "github",
       "skillPath": "cli-tool/components/skills/scientific/scientific-schematics/SKILL.md",
       "computedHash": "9900189550cf5abb8f87e31118d25864191f5bb0df6c1249091c23b7a8efc4cc"
+    },
+    "writing-humanizer-zh": {
+      "source": "hairyf/skills",
+      "sourceType": "github",
+      "skillPath": "skills/writing-humanizer-zh/SKILL.md",
+      "computedHash": "bf2edb36fb592dd2be5fbf0202cefaeaa4b8ce573954caa60b68e613adec8ce4"
     }
   }
 }
