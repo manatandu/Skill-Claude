@@ -13,6 +13,12 @@
       "skillPath": ".claude/skills/denario/SKILL.md",
       "computedHash": "9e86eeaf2a4e3bafa56894701495661262b1d52a503a6db1138784e06980c426"
     },
+    "scientific-critical-thinking": {
+      "source": "davila7/claude-code-templates",
+      "sourceType": "github",
+      "skillPath": "cli-tool/components/skills/scientific/scientific-critical-thinking/SKILL.md",
+      "computedHash": "bd85473ce643692630f68e2308107b2cff08b10018d49dffc93044109f021bc2"
+    },
     "scientific-problem-selection": {
       "source": "anthropics/knowledge-work-plugins",
       "sourceType": "github",
