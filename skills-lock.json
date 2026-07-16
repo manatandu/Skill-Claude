@@ -18,6 +18,12 @@
       "sourceType": "github",
       "skillPath": "bio-research/skills/scientific-problem-selection/SKILL.md",
       "computedHash": "cf1bac49e30bc4b9026b8e86ec182d08d2b2692176ee510a8c17e97717668364"
+    },
+    "scientific-schematics": {
+      "source": "davila7/claude-code-templates",
+      "sourceType": "github",
+      "skillPath": "cli-tool/components/skills/scientific/scientific-schematics/SKILL.md",
+      "computedHash": "9900189550cf5abb8f87e31118d25864191f5bb0df6c1249091c23b7a8efc4cc"
     }
   }
 }
