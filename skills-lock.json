@@ -13,6 +13,12 @@
       "skillPath": ".claude/skills/denario/SKILL.md",
       "computedHash": "9e86eeaf2a4e3bafa56894701495661262b1d52a503a6db1138784e06980c426"
     },
+    "humanizer-academic-zh": {
+      "source": "cangtianhuang/humanizer-academic-zh",
+      "sourceType": "github",
+      "skillPath": "SKILL.md",
+      "computedHash": "51afecb445f1f4fe199147cce1d28ee6b2d2b00e2447ad2c1098af9f6887d310"
+    },
     "scientific-brainstorming": {
       "source": "davila7/claude-code-templates",
       "sourceType": "github",
