@@ -12,6 +12,12 @@
       "sourceType": "github",
       "skillPath": ".claude/skills/denario/SKILL.md",
       "computedHash": "9e86eeaf2a4e3bafa56894701495661262b1d52a503a6db1138784e06980c426"
+    },
+    "scientific-writing": {
+      "source": "davila7/claude-code-templates",
+      "sourceType": "github",
+      "skillPath": "cli-tool/components/skills/scientific/scientific-writing/SKILL.md",
+      "computedHash": "ccc643803bfd2448f289e3e309c3a7c062ceb9630155ae800217f04a769450b7"
     }
   }
 }
