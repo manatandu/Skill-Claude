@@ -12,6 +12,12 @@
       "sourceType": "github",
       "skillPath": ".claude/skills/denario/SKILL.md",
       "computedHash": "9e86eeaf2a4e3bafa56894701495661262b1d52a503a6db1138784e06980c426"
+    },
+    "literature-review": {
+      "source": "k-dense-ai/scientific-agent-skills",
+      "sourceType": "github",
+      "skillPath": "skills/literature-review/SKILL.md",
+      "computedHash": "88a4e01e9ec0539e261378fe033486d4035ef6a7eedd3e9656c0e7dd02e28a26"
     }
   }
 }
