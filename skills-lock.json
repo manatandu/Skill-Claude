@@ -13,6 +13,12 @@
       "skillPath": ".claude/skills/denario/SKILL.md",
       "computedHash": "9e86eeaf2a4e3bafa56894701495661262b1d52a503a6db1138784e06980c426"
     },
+    "humanizer-cn": {
+      "source": "z0gsh1u/oh-my-writing-skill",
+      "sourceType": "github",
+      "skillPath": "skills/humanizer-cn/SKILL.md",
+      "computedHash": "4c760377df7018f500334e9d2f3ef9a3f173d15ca7fb59d9059d333aeb12c164"
+    },
     "scientific-brainstorming": {
       "source": "davila7/claude-code-templates",
       "sourceType": "github",
