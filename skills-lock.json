@@ -13,6 +13,12 @@
       "skillPath": ".claude/skills/denario/SKILL.md",
       "computedHash": "9e86eeaf2a4e3bafa56894701495661262b1d52a503a6db1138784e06980c426"
     },
+    "scientific-brainstorming": {
+      "source": "davila7/claude-code-templates",
+      "sourceType": "github",
+      "skillPath": "cli-tool/components/skills/scientific/scientific-brainstorming/SKILL.md",
+      "computedHash": "141ebf6201b16050c278213306f9393649faca52b7bbac2f5adca9ffbb51e0ef"
+    },
     "scientific-problem-selection": {
       "source": "anthropics/knowledge-work-plugins",
       "sourceType": "github",
