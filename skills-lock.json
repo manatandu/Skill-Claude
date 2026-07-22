@@ -30,6 +30,12 @@
       "sourceType": "github",
       "skillPath": "cli-tool/components/skills/scientific/scientific-schematics/SKILL.md",
       "computedHash": "9900189550cf5abb8f87e31118d25864191f5bb0df6c1249091c23b7a8efc4cc"
+    },
+    "ui-ux-pro-max": {
+      "source": "davila7/claude-code-templates",
+      "sourceType": "github",
+      "skillPath": "cli-tool/components/skills/creative-design/ui-ux-pro-max/SKILL.md",
+      "computedHash": "fff024e58ee4aeef4f06d3ec93bbf4aa0c6af12ec8e680182fa60d90d7f070e4"
     }
   }
 }
