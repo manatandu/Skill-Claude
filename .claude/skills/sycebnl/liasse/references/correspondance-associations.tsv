@@ -1,0 +1,87 @@
+etat	ref	rubrique	comptes_brut	comptes_amort_deprec	formule	note
+BILAN-ACTIF	AA	IMMOBILISATIONS DESTINEES A LA VENTE PROVENANT DE DONS ET LEGS NON ENCORE RECUES ET USUFRUIT TEMPORAIRE			AB + AC	note officielle 5
+BILAN-ACTIF	AB	Immobilisations incorporelles	201	280, 2901		
+BILAN-ACTIF	AC	Immobilisations corporelles et financieres	202, 203, 204, 205	2902		
+BILAN-ACTIF	AD	IMMOBILISATIONS INCORPORELLES			somme AE a AG	note officielle 5
+BILAN-ACTIF	AE	Brevets, licences, logiciels et droits similaires	212, 213, 214, 2193	2812, 2813, 2814, 2912, 2913, 2919p		note 5F
+BILAN-ACTIF	AF	Autres immobilisations incorporelles	218, 2198	2818, 2918, 2919p		
+BILAN-ACTIF	AG	Avances et acomptes verses sur immobilisations incorporelles	251			[texte officiel] amortissement illisible dans la source scannee ; case laissee vide (coherent : une avance non livree ne s'amortit pas)
+BILAN-ACTIF	AH	IMMOBILISATIONS CORPORELLES			somme AI a AN	note officielle 5
+BILAN-ACTIF	AI	Terrains	22	282, 292		
+BILAN-ACTIF	AJ	Batiments	231, 232, 233, 2391, 2392, 2393, 2396	2831, 2832, 2833, 2931, 2932, 2933, 2939p		
+BILAN-ACTIF	AK	Amenagements, agencements et installations	234, 235, 238, 2394, 2395, 2398	2834, 2835, 2838, 2934, 2935, 2938, 2939p		
+BILAN-ACTIF	AL	Materiel, mobilier et actifs biologiques	24 (sauf 245, 2495)	284 (sauf 2845), 294 (sauf 2945, 2949), 2949p		
+BILAN-ACTIF	AM	Materiel de transport	245, 2495	2845, 2945, 2949p		
+BILAN-ACTIF	AN	Avances et acomptes verses sur immobilisations corporelles	252	2952		
+BILAN-ACTIF	AO	IMMOBILISATIONS FINANCIERES			AX + AY	note officielle 6
+BILAN-ACTIF	AX	Titres de participation	26	296		
+BILAN-ACTIF	AY	Autres immobilisations financieres	27	297		
+BILAN-ACTIF	AZ	TOTAL ACTIF IMMOBILISE			AA + AD + AH + AO	
+BILAN-ACTIF	BA	Actif circulant HAO	485, 4865	498		note 7
+BILAN-ACTIF	BB	Stocks et encours	31, 32, 33, 34, 36, 37, 38	39		note 8
+BILAN-ACTIF	BC	Fournisseurs debiteurs	409	490		note 19
+BILAN-ACTIF	BD	Adherents, Clients-usagers	41 (sauf 419)	491		note 9
+BILAN-ACTIF	BE	Autres creances	solde debiteurs: 42, 43, 44, 45, 46, 47 (sauf 478)	492, 493, 494, 497		note 10 ; corrige : la source officielle liste ces comptes sans reserve de sens et inclut aussi 41 (deja capte par BD) ; qualificatif "solde debiteurs" ajoute et 41 retire pour eviter un double-comptage avec DI, sur le meme principe que la maquette SYSCOHADA equivalente ; corrige aussi : 46 ajoute (fonds d'administration a recevoir, 469) — le tableau officiel omet le compte 46 des deux cotes du bilan alors que la NOTE 10 (ligne Bailleurs, fonds d'administration) et la NOTE 21 (fonds d'administration des projets) l'exigent
+BILAN-ACTIF	BT	TOTAL ACTIF CIRCULANT			BA + BB + BC + BD + BE	
+BILAN-ACTIF	BU	Titres de placement	50	590		note 11
+BILAN-ACTIF	BV	Valeurs a encaisser	51	591		note 12
+BILAN-ACTIF	BW	Banques, etablissements financiers, caisses et assimiles	52, 53, 55, 57	592, 593, 595		note 13
+BILAN-ACTIF	BX	TOTAL TRESORERIE ACTIF			BU + BV + BW	
+BILAN-ACTIF	BY	Ecart de conversion-Actif	478			note 14
+BILAN-ACTIF	BZ	TOTAL GENERAL			AZ + BT + BX + BY	
+BILAN-PASSIF	CA	Donation non consomptible sans droit reprise	101			note 15
+BILAN-PASSIF	CB	Donation non consomptible avec droit reprise	102			note 15
+BILAN-PASSIF	CC	Droit d'entree	103			note 15
+BILAN-PASSIF	CD	Donation consomptible	104			note 15
+BILAN-PASSIF	CE	Ecarts de reevaluation	106			note 5F
+BILAN-PASSIF	CF	Reserves	11			note 16
+BILAN-PASSIF	CG	Report a nouveau (+ ou -)	12			note 16
+BILAN-PASSIF	CH	Resultat net de l'exercice (excedent + ou deficit -)	13			comptes 131 (excedent) / 139 (deficit)
+BILAN-PASSIF	CI	Subventions d'investissement	14			note 17A
+BILAN-PASSIF	CJ	Provisions reglementees	15			note 17A ; source officielle : la fiche par compte de la classe 1 (Partie 2 ch.1) etiquette ce meme poste sous 16 dans son tableau sommaire mais sous 15 dans la fiche detaillee et dans le tableau de correspondance du bilan ; 15 retenu ici
+BILAN-PASSIF	CK	TOTAL FONDS PROPRES ET ASSIMILES			somme CA a CJ	
+BILAN-PASSIF	CW	Fonds affectes et provenant de dons et legs d'immobilisations	16			note 17B
+BILAN-PASSIF	CX	Fonds reportes	17			note 17B
+BILAN-PASSIF	CY	TOTAL FONDS AFFECTES ET REPORTES			CW + CX	
+BILAN-PASSIF	CZ	TOTAL RESSOURCES PROPRES ET ASSIMILEES			CK + CY	
+BILAN-PASSIF	DA	Emprunts et dettes financieres	181, 182, 183, 185, 186, 188			note 18A
+BILAN-PASSIF	DB	Dettes de location-acquisition	187			note 18A
+BILAN-PASSIF	DC	Provisions pour risques et charges	19			note 18A
+BILAN-PASSIF	DD	TOTAL DETTES FINANCIERES ET RESSOURCES ASSIMILEES			somme DA a DC	
+BILAN-PASSIF	DE	TOTAL RESSOURCES STABLES			CZ + DD	
+BILAN-PASSIF	DF	Dettes circulantes HAO	481, 484, 4861, 488, 4998			note 7
+BILAN-PASSIF	DG	Adherents, clients-usagers crediteurs	419			note 9
+BILAN-PASSIF	DH	Fournisseurs	40 (sauf 409)			note 19
+BILAN-PASSIF	DI	Autres dettes	solde crediteurs: 42, 43, 44, 45, 46, 47, 499, 599 (sauf 479, 4998)			note 20 et 21 ; corrige : qualificatif "solde crediteurs" ajoute pour eviter un double-comptage avec BE (meme principe que la maquette SYSCOHADA equivalente) ; corrige aussi : 46 ajoute (fonds d'administration 462-464) — le tableau officiel l'omet alors que la NOTE 21 le ventile explicitement (Bailleurs de fonds / Etat / autres organismes)
+BILAN-PASSIF	DV	TOTAL PASSIF CIRCULANT			DF + DG + DH + DI	
+BILAN-PASSIF	DW	Banques, etablissements financiers et credits de tresorerie	564, 565, solde crediteurs: 52, 53			note 22 ; source officielle : "56, solde crediteurs : 52, 53" -- 56 precise en 564/565 (credits d'escompte et de tresorerie ; 561 releve des operations avec le siege, hors de ce poste) par coherence avec le plan de comptes SYCEBNL
+BILAN-PASSIF	DX	TOTAL TRESORERIE PASSIF			DW	
+BILAN-PASSIF	DY	Ecart de conversion-Passif	479			note 14
+BILAN-PASSIF	DZ	TOTAL GENERAL			DE + DV + DX + DY	
+COMPTE-DE-RESULTAT	RA	Cotisations	+ 701			note 23
+COMPTE-DE-RESULTAT	RB	Dotations consomptibles transferees au compte de resultat	+ 703			note 23
+COMPTE-DE-RESULTAT	RC	Revenus lies a la generosite	+ 704			note 23
+COMPTE-DE-RESULTAT	RD	Ventes de marchandises	+ 7051			note 23
+COMPTE-DE-RESULTAT	RE	Ventes de services et produits finis	+ 7052, 7053			note 23
+COMPTE-DE-RESULTAT	RF	Subventions d'exploitation	+ 71			note 23
+COMPTE-DE-RESULTAT	RG	Autres produits et transferts de charges	706, 707, 708, 72, 73, 75, 77, 78			note 23 ; compte 73 a solde variable (production stockee ou destockage)
+COMPTE-DE-RESULTAT	RH	Reprises de provisions, depreciations, subventions et autres reprises	+ 79			note 5D et 30 ; corrige : le libelle officiel de XA indique "Somme RA a RG", ce qui exclurait RH de la somme ; RH est un produit ordinaire et son exclusion romprait l'egalite bilan/resultat, donc le moteur l'inclut dans XA (voir formule XA)
+COMPTE-DE-RESULTAT	XA	REVENUS DES ACTIVITES ORDINAIRES			somme RA a RH	corrige, voir note RH ci-dessus
+COMPTE-DE-RESULTAT	TA	Achats de biens et services lies a l'activite	- 601			note 24
+COMPTE-DE-RESULTAT	TB	Variation de stocks des achats de biens et services lies a l'activite	-/+ 6031			note 8
+COMPTE-DE-RESULTAT	TC	Achats de marchandises et matieres premieres	- 602			note 24
+COMPTE-DE-RESULTAT	TD	Autres achats	- 604, 605, 606, 608			note 24
+COMPTE-DE-RESULTAT	TE	Variation de stocks de marchandises, de matieres premieres et autres	-/+ 6032, 6033, 6034, 6035			note 8
+COMPTE-DE-RESULTAT	TF	Transports	- 61			note 25
+COMPTE-DE-RESULTAT	TG	Services exterieurs	- 62, 63			note 26
+COMPTE-DE-RESULTAT	TH	Impots et taxes	- 64			note 27
+COMPTE-DE-RESULTAT	TI	Autres charges	- 65			note 28
+COMPTE-DE-RESULTAT	TJ	Charges de personnel	- 66			note 29
+COMPTE-DE-RESULTAT	TK	Frais financiers et charges assimilees	- 67			note 31
+COMPTE-DE-RESULTAT	TL	Dotations aux amortissements, aux provisions, aux depreciations et autres	- 68, 69			note 5D et 30
+COMPTE-DE-RESULTAT	XB	CHARGES DES ACTIVITES ORDINAIRES			somme TA a TL	
+COMPTE-DE-RESULTAT	XC	RESULTAT DES ACTIVITES ORDINAIRES			XA + XB	XA - XB au sens comptable ; XB deja stocke negatif, d'ou l'addition
+COMPTE-DE-RESULTAT	TM	Produits H.A.O.	+ 82, 84, 86, 88			note 32
+COMPTE-DE-RESULTAT	TN	Charges H.A.O.	- 81, 83, 85, 87			note 32 ; compte 87 a solde variable (variation de stocks de dons en nature HAO)
+COMPTE-DE-RESULTAT	XD	RESULTAT H.A.O.			TM + TN	TM - TN au sens comptable ; TN deja stocke negatif
+COMPTE-DE-RESULTAT	XE	RESULTAT NET DE L'EXERCICE (+excedent, -deficit)			XC + XD	

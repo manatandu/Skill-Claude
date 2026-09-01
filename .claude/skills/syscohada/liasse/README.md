@@ -1,0 +1,126 @@
+# Montage de la liasse SYSCOHADA — Système normal ET Système minimal de trésorerie
+
+## Workflow impératif avant tout montage
+
+Quand une balance est fournie, **ne jamais générer d'états sans avoir posé
+deux questions** (sauf si la réponse est déjà explicite dans la demande) :
+
+1. **Quel référentiel ?** SYSCOHADA (entités commerciales) ou SYCEBNL
+   (entités à but non lucratif — skill `sycebnl`). Une balance d'EBNL ne se
+   monte jamais avec ce module, malgré la ressemblance des numéros.
+2. **Quel système ?** Pour le SYSCOHADA :
+   - **Système normal** → `scripts/monter_liasse.py` (bilan, compte de
+     résultat, TFT, notes 1 à 36) ;
+   - **Système minimal de trésorerie (SMT)** → `scripts/monter_smt.py`
+     (bilan SMT, compte de résultat SMT, notes 1 à 4 + journaux). Seuils
+     d'assujettissement : CA HT ≤ 60 M FCFA (négoce), 40 M (artisanat),
+     30 M (services) — AUDCIF art. 13, sauf option pour le Système normal.
+
+Ensuite seulement : analyser la balance, signaler les anomalies, générer la
+liasse du système retenu. Chaque système a **son propre jeu d'états et ses
+propres notes annexes** — ne jamais servir les états de l'un à l'autre.
+
+## Sources et vérification
+
+- **Système normal** : correspondance compte → poste et liste des notes
+  recoupées contre l'**AUDCIF, Titre IX, chapitres 6 et 7** (source
+  officielle unique) ; gabarit officiel `assets/gabarit-liasse.xlsx`.
+  Corrections documentées dans `references/correspondance.tsv` (colonne
+  note) et `references/anomalies.md`.
+- **SMT** : états et notes transcrits de l'**AUDCIF, Titre X, chapitres
+  1 à 3** (voir le skill `audcif-acte-uniforme`,
+  `references/titre-10-systeme-minimal-tresorerie.md`). Pas de table de
+  correspondance officielle : celle du moteur
+  (`references/correspondance-smt.tsv`) est une construction documentée,
+  chaque compte vérifié au plan (`comptes/references/plan-comptes.tsv`).
+- **TFT** : formules de `references/tft-formules-praticien.md` (recoupées
+  AUDCIF Titre IX §598-620). v3 : correction d'une inversion de signe sur
+  FB/FC/FD — les libellés du gabarit portent « − Variation … » et ZB est
+  une somme simple, la cellule doit donc porter l'OPPOSÉ de la variation.
+  Vérifié sur balance synthétique : ZB recoupe le calcul manuel.
+
+## Ce que le moteur produit (v3)
+
+### Système normal (`monter_liasse.py`)
+
+```bash
+python3 monter_liasse.py balance_N.xlsx [balance_N-1.xlsx] \
+    --sortie liasse.xlsx --entite "..." --identifiant "..." \
+    --exercice "31/12/N" --duree 12
+```
+
+Un classeur unique, une feuille par état :
+
+- **GARDE** (page de garde), **FICHES R1-R4** (identification, gabarit) ;
+- **ACTIF** et **PASSIF** (feuilles séparées), **Compte de Résultat**,
+  **TFT** ;
+- **NOTES 1 à 36** (toutes les feuilles du gabarit officiel) — les notes
+  de soldes (4 à 30 hors déclaratives) sont **entièrement alimentées en
+  formules** ; les notes de mouvements (3A, 3C, 3D, 28) reçoivent
+  l'ouverture (balance N-1), la clôture (formule du gabarit) et les flux
+  (colonnes de mouvement de la balance si présentes, sinon variation nette
+  posée en formule `MAX(0, N−(N-1))`) ; la NOTE 34 (fiche de synthèse) est
+  câblée en formules croisées vers les états ; les notes déclaratives
+  (1, 2, 3B, 3E, 8A/3F, 13, 16B, 16C, 27B, 31, 32, 33, 35, 36) restent des
+  gabarits à compléter, en-tête d'identification pré-rempli partout ;
+- **BALANCE** (avec préfixes, mouvements et colonne « poste(s)
+  d'affectation » pour l'audit), **BALANCE_N1**, **CONTROLES** (équilibres
+  et une batterie de recoupements notes ↔ postes, tous en formules),
+  **ANOMALIES**.
+
+**Traçabilité** : chaque poste des états et chaque ligne calculée des notes
+porte une **formule Excel** (`SUMIF` sur BALANCE/BALANCE_N1) — l'origine de
+tout chiffre se remonte au compte près, directement dans le classeur.
+
+Conditions du TFT : ZA et FB-FE exigent la balance N-1 ; FF-FQ exigent en
+plus les colonnes de mouvement. À défaut, postes vides + anomalie INFO —
+jamais un chiffre approximé en silence.
+
+### Système minimal de trésorerie (`monter_smt.py`)
+
+```bash
+python3 monter_smt.py balance_N.xlsx [balance_N-1.xlsx] \
+    --sortie etats-smt.xlsx --entite "..." --exercice "31/12/N"
+```
+
+Classeur dédié : GARDE, **BILAN ACTIF**, **BILAN PASSIF**, **COMPTE DE
+RESULTAT** (G = C − D + E − F), **NOTES 1 à 4** + journaux de suivi,
+BALANCE(_N1), CONTROLES, ANOMALIES. Détail dans
+`references/notes-smt.md`. Pas de TFT au SMT (propre au Système normal).
+
+## Conventions de lecture des comptes
+
+Deux premiers chiffres = compte principal, troisième = sous-compte,
+quatrième = divisionnaire : `24421000` se lit `24 / 244 / 2442`. Un jeton
+de 2 chiffres englobe ses divisionnaires ; 3-4 chiffres valent pour
+eux-mêmes et leurs subdivisions. Clause `sauf` = retranchement. Les
+formules SUMIF générées appliquent la même convention (critère jocker
+`"24*"` sur la colonne des comptes, jetons imbriqués dédoublonnés).
+
+## Anomalies et numéros non conformes
+
+Voir `references/anomalies.md`. Rien n'est corrigé en silence : balance
+déséquilibrée (bloquant), comptes non affectés, non conformes, sens de
+solde anormal, résultat logé à deux endroits… chaque anomalie sort avec
+gravité et solution proposée. L'arbitrage final revient à l'humain.
+
+## Après montage
+
+Ouvrir le classeur dans Excel ou LibreOffice pour que les formules se
+recalculent (ou convertir : `soffice --headless --convert-to xlsx`).
+Vérifier la feuille CONTROLES : tous les écarts « doit être 0 » à zéro.
+Purger les notes non documentées avant remise (l'OHADA impose de ne pas
+joindre les notes vides).
+
+## Frontière
+
+Système normal et SMT **commerciaux** uniquement. Le SYCEBNL (associations,
+projets de développement, SMT des EBNL) relève du skill `sycebnl` — autres
+postes, autres comptes, autres notes.
+
+## Exemples livrés
+
+`exemples/` : balances synthétiques équilibrées (Système normal N et N-1,
+variante à 6 colonnes avec mouvements, SMT) et les classeurs produits
+correspondants — à ouvrir pour voir la présentation attendue, ou à passer
+aux moteurs pour vérifier l'installation.

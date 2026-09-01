@@ -1,0 +1,60 @@
+etat	ref	rubrique	comptes_brut	comptes_amort_deprec	formule	note
+BILAN-ACTIF	AA	Immobilisations incorporelles	21	281, 291		note 3A ; le bilan des projets n'a pas de colonne amortissements : chaque poste est presente en NET (amortissements et depreciations imputes), correction documentee — la table officielle ne liste que les comptes bruts
+BILAN-ACTIF	AB	Terrains et batiments	22, 231, 232, 233, 2391, 2392, 2393, 2396	282, 2831, 2832, 2833, 292, 2931, 2932, 2933, 2939p		note 3A
+BILAN-ACTIF	AC	Amenagements, agencements et installations	234, 235, 238, 2394, 2395, 2398	2834, 2835, 2838, 2934, 2935, 2938		note 3A
+BILAN-ACTIF	AD	Materiel, mobilier et actifs biologiques	24 (sauf 245, 2495)	284 (sauf 2845), 294 (sauf 2945)		note 3A
+BILAN-ACTIF	AE	Materiel de transport	245, 2495	2845, 2945		note 3A
+BILAN-ACTIF	AF	Avances et acomptes verses sur immobilisations	25	295		note 3A
+BILAN-ACTIF	AG	Depots et cautionnements	275	2975		note 3A
+BILAN-ACTIF	AH	Autres immobilisations corporelles et financieres	26, 27 (sauf 275)	296, 297 (sauf 2975)		note 3A
+BILAN-ACTIF	AZ	TOTAL ACTIF IMMOBILISE			somme AA a AH
+BILAN-ACTIF	BA	Actif circulant HAO	485	498		note 4
+BILAN-ACTIF	BB	Stocks et encours	31, 32, 33, 34, 36, 37, 38	39		note 5
+BILAN-ACTIF	BC	Fournisseurs debiteurs	409	490		note 6
+BILAN-ACTIF	BD	Clients-usagers	41 (sauf 411, 419)	491		note 6 ; la table officielle exclut 411 (adherents : un projet n'en a pas — si present, remonte en anomalie)
+BILAN-ACTIF	BE	Autres creances	solde debiteurs: 42, 43, 44, 47 (sauf 478)	492, 493, 494, 497		note 6
+BILAN-ACTIF	BF	TOTAL ACTIF CIRCULANT			BA + BB + BC + BD + BE
+BILAN-ACTIF	BV	Valeurs a encaisser	51	591		note 7
+BILAN-ACTIF	BW	Banques, etablissements financiers, caisses et assimiles	52, 53, 55, 57	592, 593, 595		note 7
+BILAN-ACTIF	BX	TOTAL TRESORERIE ACTIF			BV + BW
+BILAN-ACTIF	BY	Ecart de conversion-Actif	478			note 8
+BILAN-ACTIF	BZ	TOTAL GENERAL			AZ + BF + BX + BY
+BILAN-PASSIF	CA	Fonds affectes aux investissements	16			note 9
+BILAN-PASSIF	CB	Report a nouveau (+ ou -)	12
+BILAN-PASSIF	CC	Solde des operations de l'exercice	13			comptes 131 (excedent) / 139 (deficit) ; lie au compte d'exploitation par le moteur
+BILAN-PASSIF	CD	Subventions d'investissement	14			note 10
+BILAN-PASSIF	CZ	TOTAL RESSOURCES PROPRES ET ASSIMILEES			somme CA a CD
+BILAN-PASSIF	DA	Emprunts et dettes assimilees	18			note 11
+BILAN-PASSIF	DB	Provisions pour risques et charges	19			note 11
+BILAN-PASSIF	DC	TOTAL DETTES FINANCIERES ET RESSOURCES ASSIMILEES			DA + DB
+BILAN-PASSIF	DD	TOTAL RESSOURCES STABLES			CZ + DC
+BILAN-PASSIF	DE	Dettes circulantes HAO	481, 484, 4998			note 4
+BILAN-PASSIF	DF	Fonds d'administration	46			note 9
+BILAN-PASSIF	DG	Fournisseurs	40 (sauf 409)			note 12
+BILAN-PASSIF	DH	Autres dettes	419, solde crediteurs: 42, 43, 44, 47 (sauf 479)			note 12 ; corrige : la table officielle ecrit "(sauf 478)" pour les soldes crediteurs, or 478 est l'ecart de conversion ACTIF (BY) — c'est 479 (ecart passif, poste DY) qu'il faut exclure ici
+BILAN-PASSIF	DI	Provisions pour risques et charges a court terme	499 (sauf 4998), 599			corrige : la table officielle porte "20" (numero de la Note), retenu ici 499/599 conformement au plan de comptes (provisions pour risques a court terme)
+BILAN-PASSIF	DJ	TOTAL PASSIF CIRCULANT			somme DE a DI
+BILAN-PASSIF	DW	Banques, etablissements financiers et credits de tresorerie	56, solde crediteurs: 52, 53			note 13
+BILAN-PASSIF	DX	TOTAL TRESORERIE PASSIF			DW
+BILAN-PASSIF	DY	Ecart de conversion-Passif	479			note 8
+BILAN-PASSIF	DZ	TOTAL GENERAL			DD + DJ + DX + DY
+COMPTE-DE-RESULTAT	RA	Fonds d'administration consommes	+ 702			note 9 et 14
+COMPTE-DE-RESULTAT	RB	Ventes de marchandises, produits finis et prestations de services	+ 705			note 14
+COMPTE-DE-RESULTAT	RC	Subventions d'exploitation	+ 71			note 14 ; ligne presente dans la table de correspondance officielle mais omise du modele du compte d'exploitation [texte officiel] — reintegree
+COMPTE-DE-RESULTAT	RD	Autres produits et transferts de charges	706, 707, 708, 72, 73, 75, 77, 78			note 14 ; 73 a solde variable
+COMPTE-DE-RESULTAT	RE	Reprises de provisions	+ 79			note 22
+COMPTE-DE-RESULTAT	XA	REVENUS			somme RA a RE ; le libelle officiel de la table ecrit "Somme RA a RD" (excluant RE) et le modele "Somme RA a RE" : RE retenu (un produit ordinaire exclu romprait l'egalite bilan/resultat)
+COMPTE-DE-RESULTAT	TA	Achats de biens, marchandises, matieres premieres et fournitures liees	- 601, 602			note 15
+COMPTE-DE-RESULTAT	TB	Autres achats	- 604, 605, 606, 608			note 15
+COMPTE-DE-RESULTAT	TC	Variation de stocks de biens, marchandises, matieres et fournitures	-/+ 603			note 5
+COMPTE-DE-RESULTAT	TD	Transports	- 61			note 16
+COMPTE-DE-RESULTAT	TG	Services exterieurs	- 62, 63			note 17
+COMPTE-DE-RESULTAT	TH	Impots et taxes	- 64			note 18
+COMPTE-DE-RESULTAT	TI	Autres charges	- 65			note 19
+COMPTE-DE-RESULTAT	TJ	Charges de personnel	- 66			note 20A ; le modele officiel reutilise le code REF TJ pour deux lignes distinctes [texte officiel]
+COMPTE-DE-RESULTAT	TK	Frais financiers et charges assimilees	- 67			note 21 ; le modele officiel reutilise le code REF TK pour deux lignes distinctes [texte officiel]
+COMPTE-DE-RESULTAT	TJ2	Dotations aux amortissements et aux provisions	- 68, 69			note 22 ; code affiche "TJ" (doublon officiel) ; corrige : la table officielle ne cite que 69, or les dotations aux amortissements (68) existent au plan SYCEBNL et resteraient sans poste — 68 ajoute
+COMPTE-DE-RESULTAT	TK2	Produits H.A.O.	+ 82, 84, 86, 88			note 23 ; code affiche "TK" (doublon officiel)
+COMPTE-DE-RESULTAT	TL	Charges H.A.O.	- 81, 83, 85, 87			note 23 ; 87 a solde variable
+COMPTE-DE-RESULTAT	XB	CHARGES DE FONCTIONNEMENT			somme TA a TL (les produits HAO TK2 s'y ajoutent en positif, presentation officielle)
+COMPTE-DE-RESULTAT	XC	SOLDE DES OPERATIONS DE L'EXERCICE			XA + XB	XA - XB au sens comptable ; XB stocke signe

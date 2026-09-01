@@ -1,0 +1,100 @@
+etat	ref	rubrique	comptes_brut	comptes_amort_deprec	formule	note
+BILAN-ACTIF	AD	IMMOBILISATIONS INCORPORELLES			somme AE à AH	
+BILAN-ACTIF	AE	Frais de développement et de prospection	211, 2181, 2191	2811, 2818p, 2911, 2918p, 2919p		
+BILAN-ACTIF	AF	Brevets, licences, logiciels et droits similaires	212, 213, 214, 2193	2812, 2813, 2814, 2912, 2913, 2914, 2919p		corrigé: 2929p -> 2919p
+BILAN-ACTIF	AG	Fonds commercial et droit au bail	215, 216	2815, 2816, 2915, 2916		corrigé: amortissements 2815,2816 rétablis
+BILAN-ACTIF	AH	Autres immobilisations incorporelles	217, 218 (sauf 2181), 2198	2817, 2818p, 2917, 2918p, 2919p		corrigé: 2198 inclus (relève de 219, pas de 218)
+BILAN-ACTIF	AI	IMMOBILISATIONS CORPORELLES			somme AJ à AP	
+BILAN-ACTIF	AJ	Terrains	22	282, 292		dont immeubles de placement en net: 2281 - 2928p [inféré]
+BILAN-ACTIF	AK	Bâtiments	231, 232, 233, 237, 2391	2831, 2832, 2833, 2837, 2931, 2932, 2933, 2937, 2939p		dont immeubles de placement en net: 2315 + 2325 - 2831p - 2832p
+BILAN-ACTIF	AL	Aménagements, agencements et installations	234, 235, 238, 2392, 2393, 2394, 2395, 2398	2834, 2835, 2838, 2934, 2935, 2938, 2939p		ajouté: 2394, 2395, 2398 (non captés)
+BILAN-ACTIF	AM	Matériel, mobilier et actifs biologiques	24 (sauf 245, 2495)	284 (sauf 2845), 294 (sauf 2945), 2949p		
+BILAN-ACTIF	AN	Matériel de transport	245, 2495	2845, 2945, 2949p		corrigé: 2948 -> 2945
+BILAN-ACTIF	AP	Avances et acomptes versés sur immobilisations	251, 252	2951, 2952		
+BILAN-ACTIF	AQ	IMMOBILISATIONS FINANCIERES			AR + AS	
+BILAN-ACTIF	AR	Titres de participation	26	296		
+BILAN-ACTIF	AS	Autres immobilisations financières	27	297		
+BILAN-ACTIF	AZ	TOTAL ACTIF IMMOBILISE			AD + AI + AQ	
+BILAN-ACTIF	BA	Actif circulant HAO	485, 488	498		
+BILAN-ACTIF	BB	Stocks et encours	31, 32, 33, 34, 35, 36, 37, 38	39		
+BILAN-ACTIF	BG	CREANCES ET EMPLOIS ASSIMILES			somme BH à BJ	
+BILAN-ACTIF	BH	Fournisseurs, avances versées	409	490		
+BILAN-ACTIF	BI	Clients	41 (sauf 419)	491		
+BILAN-ACTIF	BJ	Autres créances	soldes débiteurs: 185, 42, 43, 44, 45, 46, 47 (sauf 478)	492, 493, 494, 495, 496, 497		
+BILAN-ACTIF	BK	TOTAL ACTIF CIRCULANT			BA + BB + BG	
+BILAN-ACTIF	BQ	Titres de placement	50	590		
+BILAN-ACTIF	BR	Valeurs à encaisser	51	591		
+BILAN-ACTIF	BS	Banques, chèques postaux, caisse et assimilés	soldes débiteurs: 52, 53, 54, 55, 57, 581, 582, 585, 588	592, 593, 594		corrigé: 592,593,595 retirés de la colonne brut; 585,588 rétablis [inféré]
+BILAN-ACTIF	BT	TOTAL TRESORERIE-ACTIF			somme BQ à BS	
+BILAN-ACTIF	BU	Ecart de conversion-Actif	478			
+BILAN-ACTIF	BZ	TOTAL GENERAL			AZ + BK + BT + BU	
+BILAN-PASSIF	CA	Capital	101 à 104			corrigé: le compte 100 n'existe pas
+BILAN-PASSIF	CB	Apporteurs, capital non appelé	109			porté en négatif
+BILAN-PASSIF	CD	Primes liées au capital social	105			
+BILAN-PASSIF	CE	Ecarts de réévaluation	106			
+BILAN-PASSIF	CF	Réserves indisponibles	111, 112, 113			
+BILAN-PASSIF	CG	Réserves libres	118			
+BILAN-PASSIF	CH	Report à nouveau	12 (121 > 0 ; 129 < 0)			
+BILAN-PASSIF	CI	Résultat net de l'exercice	13 (131 > 0 ; 139 < 0)			
+BILAN-PASSIF	CL	Subventions d'investissement	14			
+BILAN-PASSIF	CM	Provisions réglementées	15			
+BILAN-PASSIF	CP	TOTAL CAPITAUX PROPRES ET RESSOURCES ASSIMILEES			somme CA à CM	
+BILAN-PASSIF	DA	Emprunts et dettes financières diverses	16, 181, 182, 183, 184			
+BILAN-PASSIF	DB	Dettes de location acquisition	17			
+BILAN-PASSIF	DC	Provisions pour risques et charges	19			
+BILAN-PASSIF	DD	TOTAL DETTES FINANCIERES ET RESSOURCES ASSIMILEES			somme DA à DC	
+BILAN-PASSIF	DF	TOTAL RESSOURCES STABLES			CP + DD	
+BILAN-PASSIF	DH	Dettes circulantes HAO	481, 482, 484, 4998			
+BILAN-PASSIF	DI	Clients, avances reçues	419			
+BILAN-PASSIF	DJ	Fournisseurs d'exploitation	40 (sauf 409)			
+BILAN-PASSIF	DK	Dettes fiscales et sociales	soldes créditeurs: 42, 43, 44			
+BILAN-PASSIF	DM	Autres dettes	soldes créditeurs: 185, 45, 46, 47 (sauf 479)			
+BILAN-PASSIF	DN	Provisions pour risques à court terme	499 (sauf 4998), 599			
+BILAN-PASSIF	DP	TOTAL PASSIF CIRCULANT			somme DH à DN	
+BILAN-PASSIF	DQ	Banques, crédits d'escompte	564, 565			
+BILAN-PASSIF	DR	Banques, établissements financiers et crédits de trésorerie	soldes créditeurs: 52, 53, 561, 566			
+BILAN-PASSIF	DT	TOTAL TRESORERIE-PASSIF			DQ + DR	
+BILAN-PASSIF	DV	Ecart de conversion-Passif	479			
+BILAN-PASSIF	DZ	TOTAL GENERAL			DF + DP + DT + DV	
+COMPTE-DE-RESULTAT	TA	Ventes de marchandises	+ 701			
+COMPTE-DE-RESULTAT	RA	Achats de marchandises	- 601			
+COMPTE-DE-RESULTAT	RB	Variation de stocks de marchandises	-/+ 6031			
+COMPTE-DE-RESULTAT	XA	MARGE COMMERCIALE			TA + RA + RB	compte 132 (corrigé: la maquette indiquait 13)
+COMPTE-DE-RESULTAT	TB	Ventes de produits fabriqués	+ 702, 703, 704			
+COMPTE-DE-RESULTAT	TC	Travaux, services vendus	+ 705, 706			
+COMPTE-DE-RESULTAT	TD	Produits accessoires	+ 707			
+COMPTE-DE-RESULTAT	XB	CHIFFRE D'AFFAIRES			TA + TB + TC + TD	
+COMPTE-DE-RESULTAT	TE	Production stockée (ou déstockage)	-/+ 73			
+COMPTE-DE-RESULTAT	TF	Production immobilisée	+ 72			
+COMPTE-DE-RESULTAT	TG	Subventions d'exploitation	+ 71			
+COMPTE-DE-RESULTAT	TH	Autres produits	+ 75			
+COMPTE-DE-RESULTAT	TI	Transferts de charges d'exploitation	+ 781			
+COMPTE-DE-RESULTAT	RC	Achats de matières premières et fournitures liées	- 602			
+COMPTE-DE-RESULTAT	RD	Variation de stocks de matières premières et fournitures liées	-/+ 6032			
+COMPTE-DE-RESULTAT	RE	Autres achats	- 604, 605, 608			
+COMPTE-DE-RESULTAT	RF	Variation de stocks d'autres approvisionnements	-/+ 6033			
+COMPTE-DE-RESULTAT	RG	Transports	- 61			
+COMPTE-DE-RESULTAT	RH	Services extérieurs	- 62, 63			
+COMPTE-DE-RESULTAT	RI	Impôts et taxes	- 64			
+COMPTE-DE-RESULTAT	RJ	Autres charges	- 65			
+COMPTE-DE-RESULTAT	XC	VALEUR AJOUTEE			XB + RA + RB + (somme TE à RJ)	compte 133 (corrigé: la maquette indiquait 132)
+COMPTE-DE-RESULTAT	RK	Charges de personnel	- 66			corrigé: la maquette étiquetait RT
+COMPTE-DE-RESULTAT	XD	EXCEDENT BRUT D'EXPLOITATION			XC + RK	compte 134 (corrigé: 133)
+COMPTE-DE-RESULTAT	TJ	Reprises d'amortissements, provisions et dépréciations	+ 791, 798, 799			
+COMPTE-DE-RESULTAT	RL	Dotations aux amortissements, aux provisions et dépréciations	- 681, 691			
+COMPTE-DE-RESULTAT	XE	RESULTAT D'EXPLOITATION			XD + TJ + RL	compte 135 (corrigé: 134)
+COMPTE-DE-RESULTAT	TK	Revenus financiers et assimilés	+ 77			
+COMPTE-DE-RESULTAT	TL	Reprises de provisions et dépréciations financières	+ 797			
+COMPTE-DE-RESULTAT	TM	Transferts de charges financières	+ 787			
+COMPTE-DE-RESULTAT	RM	Frais financiers et charges assimilées	- 67			
+COMPTE-DE-RESULTAT	RN	Dotations aux provisions et aux dépréciations financières	- 697			
+COMPTE-DE-RESULTAT	XF	RESULTAT FINANCIER			somme TK à RN	compte 136 (corrigé: 135)
+COMPTE-DE-RESULTAT	XG	RESULTAT DES ACTIVITES ORDINAIRES			XE + XF	compte 137 (corrigé: 136)
+COMPTE-DE-RESULTAT	TN	Produits des cessions d'immobilisations	+ 82			
+COMPTE-DE-RESULTAT	TO	Autres produits HAO	+ 84, 86, 88			
+COMPTE-DE-RESULTAT	RO	Valeurs comptables des cessions d'immobilisations	- 81			
+COMPTE-DE-RESULTAT	RP	Autres charges HAO	- 83, 85			
+COMPTE-DE-RESULTAT	XH	RESULTAT HORS ACTIVITES ORDINAIRES			somme TN à RP	compte 138 (corrigé: étiquette XM, compte 137)
+COMPTE-DE-RESULTAT	RQ	Participation des travailleurs	- 87			corrigé: la maquette étiquetait RR
+COMPTE-DE-RESULTAT	RS	Impôts sur le résultat	- 89			
+COMPTE-DE-RESULTAT	XI	RESULTAT NET			XG + XH + RQ + RS	comptes 131 (bénéfice) / 139 (perte)

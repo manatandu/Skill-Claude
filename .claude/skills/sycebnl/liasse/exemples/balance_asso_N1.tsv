@@ -1,0 +1,25 @@
+Compte	Intitulé	Solde final débit	Solde final crédit
+2131	Logiciels	2000000	0
+2313	Bâtiments administratifs	15000000	0
+2441	Matériel et mobilier de bureau	4000000	0
+341	Dons en nature non affectés	1000000	0
+411	Adhérents	700000	0
+521	Banques locales	4350000	0
+571	Caisse	600000	0
+2813	Amortissements logiciels	0	600000
+2831	Amortissements bâtiments	0	2700000
+2844	Amortissements matériel et mobilier	0	1700000
+4911	Dépréciations créances adhérents	0	150000
+1011	Dotation non consomptible sans droit de reprise	0	10000000
+112	Réserves statutaires	0	1400000
+121	Report à nouveau des excédents	0	500000
+1411	Subventions d'équipement - État	0	4200000
+165	Fonds affectés à un projet spécifique	0	1800000
+182	Emprunts auprès des établissements de crédit	0	2000000
+191	Provisions pour litiges	0	350000
+4011	Fournisseurs	0	700000
+422	Personnel, rémunérations dues	0	400000
+431	Sécurité sociale	0	250000
+442	État, autres impôts et taxes	0	200000
+462	Bailleurs - fonds d'administration	0	300000
+131	Excédent de l'exercice	0	400000

@@ -1,0 +1,28 @@
+etat	ref	rubrique	comptes	mode	note
+BILAN-ACTIF	GA	Immobilisations (1)	2	nd	Note 1 ; net des amortissements et dépréciations (28/29 dans le net de la classe 2) — le bilan SMT n'a pas de colonne amortissements
+BILAN-ACTIF	GB	Stocks	3	nd	Note 2 ; net des dépréciations (39)
+BILAN-ACTIF	GC	Adhérents, clients-usagers et autres débiteurs	debits: 4 ; moins credits: 49, 590, 591 ; plus nd: 50, 51	mixte	Note 3
+BILAN-ACTIF	GD	Caisse	57	nd	Note 4
+BILAN-ACTIF	GE	Banque (en + ou en -)	52, 53, 55, 56, 58 ; moins credits: 592, 593, 595	mixte	Note 4 ; un découvert vient en moins de l'actif — pas de poste banques créditrices au passif du SMT
+BILAN-ACTIF	GZ	Total actif		formule	GA+GB+GC+GD+GE
+BILAN-PASSIF	HA	Dotations	10	nc	Note 5
+BILAN-PASSIF	HB	Résultat net de l'exercice (en + ou en -)	13 + résultat du compte de résultat SMT	formule	boucle avant/après affectation
+BILAN-PASSIF	HC	Autres fonds propres	11, 12, 14, 15, 16, 17, 18, 19	nc	réserves, report à nouveau, subventions, fonds affectés/reportés, emprunts et provisions — le modèle SMT ne les distingue pas
+BILAN-PASSIF	HD	Fournisseurs et autres créditeurs	credits: 4 sauf 49 ; plus nc: 599	mixte	Note 3 ; les dépréciations de tiers (49) réduisent l'actif (GC)
+BILAN-PASSIF	HZ	Total passif		formule	HA+HB+HC+HD
+COMPTE-DE-RESULTAT	KA	Revenus encaissés	70	nc	Note 4 (cotisations, générosité, ventes, manifestations...)
+COMPTE-DE-RESULTAT	KB	Autres recettes sur activités	71, 72, 75, 77, 78, 79, 82, 84, 86, 88	nc	Note 4 ; 73 reclassé en variation des stocks (VA)
+COMPTE-DE-RESULTAT	KX	TOTAL DES REVENUS ENCAISSÉS (A)		formule	KA+KB
+COMPTE-DE-RESULTAT	JA	Dépenses sur achats	60 sauf 603	nd	Note 4 ; 603 reclassé en variation des stocks (VA)
+COMPTE-DE-RESULTAT	JB	Dépenses sur loyers	622	nd	Note 4
+COMPTE-DE-RESULTAT	JC	Dépenses sur salaires	66	nd	Note 4
+COMPTE-DE-RESULTAT	JD	Dépenses sur impôts et taxes	64	nd	Note 4
+COMPTE-DE-RESULTAT	JE	Charges d'intérêts	67	nd
+COMPTE-DE-RESULTAT	JF	Autres dépenses sur activités	61, 62 sauf 622, 63, 65, 81, 83, 87	nd	Note 4
+COMPTE-DE-RESULTAT	JX	TOTAL DÉPENSES SUR CHARGES (B)		formule	JA+JB+JC+JD+JE+JF
+COMPTE-DE-RESULTAT	KZ	SOLDE : excédent (+) ou insuffisance (-) de recettes (C = A - B)		formule	KX-JX
+COMPTE-DE-RESULTAT	VA	+ Variations des stocks sur les achats [N - (N-1)]	classe 3 (N) - classe 3 (N-1) ; sans N-1 : soldes créditeurs nets 603 + 73	formule	Note 2 (état des stocks)
+COMPTE-DE-RESULTAT	VB	+ Variation des créances [N - (N-1)]	saisie manuelle (état des créances, Note 3)	manuel	non déductible d'une balance de trésorerie
+COMPTE-DE-RESULTAT	VC	- Variation des dettes d'exploitation [N - (N-1)]	saisie manuelle (état des dettes, Note 3)	manuel	idem
+COMPTE-DE-RESULTAT	JG	DOTATIONS AUX AMORTISSEMENTS	68, 69, 85	nd
+COMPTE-DE-RESULTAT	KZC	RÉSULTAT NET DE L'EXERCICE		formule	KZ+VA+VB-VC-JG (signes officiels du modèle SYCEBNL, Partie 4 ch. 4)

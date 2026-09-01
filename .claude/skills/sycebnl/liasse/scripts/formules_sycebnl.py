@@ -1,0 +1,195 @@
+"""
+formules_sycebnl.py — Générateur de formules Excel traçables pour les états
+financiers SYCEBNL (module autonome, adapté de syscohada/liasse).
+
+Principe : plutôt que d'injecter des valeurs figées, le moteur écrit dans les
+états et les notes annexes de vraies formules Excel (SUMIF) pointant vers la
+feuille BALANCE (exercice N) ou BALANCE_N1 (exercice N-1) du classeur produit.
+Chaque chiffre de la liasse est ainsi retraçable jusqu'aux comptes de la
+balance qui l'alimentent — l'utilisateur peut auditer n'importe quel poste en
+suivant la formule.
+
+Disposition des feuilles BALANCE / BALANCE_N1 (écrites par monter_liasse.py) :
+  A Compte | B Intitulé | C Préfixe 2 | D Préfixe 3 | E Préfixe 4
+  F Solde final débit | G Solde final crédit | H Mouvement débit
+  I Mouvement crédit | J Poste(s) d'affectation
+
+Un jeton de maquette de 2 chiffres se compare à la colonne C, de 3 chiffres à
+la colonne D, de 4 chiffres à la colonne E — même convention d'englobement que
+lib_mapping.token_match. La clause « sauf » se traduit par des SUMIF soustraits.
+
+Modes de sommation (mêmes conventions que monter_liasse.somme) :
+  'd'  : somme des soldes débiteurs (colonne F seule)
+  'c'  : somme des soldes créditeurs (colonne G seule)
+  'nd' : net débiteur  (F - G)  — actif brut, charges
+  'nc' : net créditeur (G - F)  — amortissements, passif, produits
+  'md' : somme des mouvements débit (colonne H)
+  'mc' : somme des mouvements crédit (colonne I)
+"""
+
+from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
+from openpyxl.utils import get_column_letter
+
+# --------------------------------------------------------------------------
+# Formules SUMIF sur la balance
+# --------------------------------------------------------------------------
+
+_MODE_COLS = {"d": ("F",), "c": ("G",), "nd": ("F", "G"), "nc": ("G", "F"),
+              "md": ("H",), "mc": ("I",)}
+
+# Dernière ligne des plages SUMIF : bornée (plutôt que colonne entière) pour
+# des recalculs rapides. Le moteur la cale sur la taille réelle de la balance.
+_LIGNE_MAX = 2000
+
+
+def set_lignes_max(n):
+    global _LIGNE_MAX
+    _LIGNE_MAX = max(int(n), 50)
+
+
+def _sumif(feuille, token, col):
+    # critère jocker sur la colonne A (numéros de comptes écrits en texte) :
+    # "24*" capte 24 et toutes ses subdivisions, quel que soit le nombre de
+    # chiffres du jeton — même convention d'englobement que lib_mapping.
+    return (f"SUMIF({feuille}!$A$2:$A${_LIGNE_MAX},\"{token}*\","
+            f"{feuille}!${col}$2:${col}${_LIGNE_MAX})")
+
+
+def _termes(tokens, mode, feuille, signe):
+    """Liste de (signe, sumif) pour un jeu de jetons dans un mode donné."""
+    cols = _MODE_COLS[mode]
+    out = []
+    for t in tokens:
+        out.append((signe, _sumif(feuille, t, cols[0])))
+        if len(cols) == 2:  # net : la 2e colonne vient en sens inverse
+            out.append(("-" if signe == "+" else "+", _sumif(feuille, t, cols[1])))
+    return out
+
+
+def _dedupe(tokens):
+    """Écarte les jetons déjà englobés par un jeton plus court de la liste :
+    « 12, 121, 129 » -> « 12 » (un SUMIF « 12* » capte déjà 121 et 129 ;
+    les additionner tous compterait les subdivisions deux fois)."""
+    ts = sorted(set(tokens), key=len)
+    out = []
+    for t in ts:
+        if not any(t != p and t.startswith(p) for p in out):
+            out.append(t)
+    return out
+
+
+def formule_tokens(tokens, mode, feuille="BALANCE", exclude=()):
+    """Formule Excel '=...' sommant les jetons donnés, moins les exclusions."""
+    termes = _termes(_dedupe(tokens), mode, feuille, "+")
+    termes += _termes(_dedupe(exclude), mode, feuille, "-")
+    if not termes:
+        return None
+    corps = ""
+    for i, (s, t) in enumerate(termes):
+        corps += t if (i == 0 and s == "+") else s + t
+    return "=" + corps
+
+
+def formule_expr(e, mode_defaut, feuille="BALANCE"):
+    """Formule pour une Expr de lib_mapping_sycebnl : trois groupes de jetons
+    (inconditionnels au mode par défaut, « soldes débiteurs » en colonne F
+    seule, « soldes créditeurs » en colonne G seule), moins les exclusions."""
+    morceaux = []
+    if e.include:
+        morceaux.append(formule_tokens(e.include, mode_defaut, feuille,
+                                       exclude=e.exclude)[1:])
+    if getattr(e, "include_deb", None):
+        morceaux.append(formule_tokens(e.include_deb, "d", feuille,
+                                       exclude=e.exclude)[1:])
+    if getattr(e, "include_cred", None):
+        morceaux.append(formule_tokens(e.include_cred, "c", feuille,
+                                       exclude=e.exclude)[1:])
+    if not morceaux:
+        return None
+    return "=" + "+".join(f"({m})" for m in morceaux)
+
+
+# --------------------------------------------------------------------------
+# Styles partagés (présentation professionnelle des feuilles ajoutées)
+# --------------------------------------------------------------------------
+
+BLEU_FONCE = "1F4E5F"
+BLEU_CLAIR = "DDEBF0"
+GRIS_CLAIR = "F2F2F2"
+OR_TOTAL = "FCE4D6"
+
+F_TITRE = Font(name="Calibri", size=14, bold=True, color="FFFFFF")
+F_SOUS_TITRE = Font(name="Calibri", size=11, bold=True, color=BLEU_FONCE)
+F_ENTETE = Font(name="Calibri", size=10, bold=True, color="FFFFFF")
+F_NORMAL = Font(name="Calibri", size=10)
+F_GRAS = Font(name="Calibri", size=10, bold=True)
+
+R_TITRE = PatternFill("solid", fgColor=BLEU_FONCE)
+R_ENTETE = PatternFill("solid", fgColor="2E75B6")
+R_BANDE = PatternFill("solid", fgColor=GRIS_CLAIR)
+R_TOTAL = PatternFill("solid", fgColor=OR_TOTAL)
+
+BORD_FIN = Border(*(Side(style="thin", color="BFBFBF"),) * 4)
+
+AL_CENTRE = Alignment(horizontal="center", vertical="center", wrap_text=True)
+AL_GAUCHE = Alignment(horizontal="left", vertical="center", wrap_text=True)
+
+FMT_MONTANT = "#,##0;[Red]-#,##0"
+FMT_PCT = "0.0%"
+
+
+def style_titre(ws, cell_range, texte):
+    """Bandeau de titre fusionné sur cell_range (ex. 'A1:G1')."""
+    ws.merge_cells(cell_range)
+    first = cell_range.split(":")[0]
+    c = ws[first]
+    c.value = texte
+    c.font = F_TITRE
+    c.fill = R_TITRE
+    c.alignment = AL_CENTRE
+
+
+def style_entetes(ws, row, col_min, col_max):
+    for col in range(col_min, col_max + 1):
+        c = ws.cell(row, col)
+        c.font = F_ENTETE
+        c.fill = R_ENTETE
+        c.alignment = AL_CENTRE
+        c.border = BORD_FIN
+
+
+def style_zone_donnees(ws, row_min, row_max, col_min, col_max,
+                       cols_montant=(), bandes=True):
+    for r in range(row_min, row_max + 1):
+        for col in range(col_min, col_max + 1):
+            c = ws.cell(r, col)
+            c.border = BORD_FIN
+            if c.font is None or not c.font.bold:
+                c.font = F_NORMAL
+            if bandes and r % 2 == 0:
+                if c.fill is None or c.fill.fgColor.rgb in (None, "00000000"):
+                    c.fill = R_BANDE
+            if col in cols_montant:
+                c.number_format = FMT_MONTANT
+
+
+def style_ligne_total(ws, row, col_min, col_max, cols_montant=()):
+    for col in range(col_min, col_max + 1):
+        c = ws.cell(row, col)
+        c.font = F_GRAS
+        c.fill = R_TOTAL
+        c.border = BORD_FIN
+        if col in cols_montant:
+            c.number_format = FMT_MONTANT
+
+
+def largeurs(ws, spec):
+    """spec : dict lettre -> largeur."""
+    for lettre, l in spec.items():
+        ws.column_dimensions[lettre].width = l
+
+
+def format_montants(ws, cellules):
+    """Applique le format montant à une liste de références 'B12'..."""
+    for ref in cellules:
+        ws[ref].number_format = FMT_MONTANT
