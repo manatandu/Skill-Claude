@@ -22,7 +22,9 @@ import openpyxl
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib_mapping_sycebnl import charger_maquette
-from formules_sycebnl import formule_tokens
+from formules_sycebnl import (formule_tokens, retirer_tirets,
+                              construire_identification,
+                              construire_fiche_notes, ordonner_feuilles)
 import monter_etats_sycebnl as m
 import notes_sycebnl
 
@@ -65,6 +67,24 @@ def main():
     m.ecrire_balance(wb, "BALANCE_N1", [], rubs)
     m.construire_controles(wb, [], refs, controles, avec_n1)
     m.construire_garde(wb, ident, avec_n1)
+    construire_identification(wb, ident, "SYCEBNL",
+                              "Associations et ordres professionnels - "
+                              "Système normal")
+    parties = notes_sycebnl.parties_depuis_specs(
+        notes_sycebnl.NOTES_ASSOCIATIONS,
+        [("Partie 1 : Informations générales", 1, 4),
+         ("Partie 2 : Notes sur le bilan", 5, 22),
+         ("Partie 3 : Notes sur le compte de résultat", 23, 32),
+         ("Partie 4 : Autres informations", 33, 35)])
+    construire_fiche_notes(wb, parties, ident,
+                           "SYCEBNL - Associations et ordres professionnels "
+                           "(Partie 4, ch. 2, section 4)")
+    ordonner_feuilles(wb, ["GARDE", "IDENTIFICATION", "ACTIF", "PASSIF",
+                           m.CR_NOM, "TFT", "FICHE NOTES"]
+                      + [spec["feuille"] for spec in
+                         notes_sycebnl.NOTES_ASSOCIATIONS]
+                      + ["BALANCE", "BALANCE_N1", "CONTROLES", "ANOMALIES"])
+    retirer_tirets(wb)
 
     os.makedirs(os.path.dirname(SORTIE), exist_ok=True)
     wb.save(SORTIE)

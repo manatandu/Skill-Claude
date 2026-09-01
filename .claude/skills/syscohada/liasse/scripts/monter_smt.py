@@ -40,7 +40,8 @@ from formules import (
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
-    largeurs, style_titre,
+    largeurs, style_titre, retirer_tirets, construire_identification,
+    construire_fiche_notes, ordonner_feuilles,
 )
 from monter_liasse import lire_balance
 
@@ -459,7 +460,8 @@ def construire_garde(wb, ident, avec_n1):
     g[f"B{r}"] = "Composition du jeu d'états (AUDCIF Titre X)"
     g[f"B{r}"].font = F_SOUS_TITRE
     r += 1
-    for s in ["Bilan (actif et passif, une feuille chacun)",
+    for s in ["Fiche d'identification et fiche récapitulative des notes",
+              "Bilan (actif et passif, une feuille chacun)",
               "Compte de résultat (recettes/dépenses corrigées)",
               "Notes annexes 1 à 4 + journaux de suivi",
               "Feuilles d'audit : BALANCE, BALANCE_N1, CONTROLES, ANOMALIES"]:
@@ -609,6 +611,29 @@ def main():
     largeurs(an, {"A": 12, "B": 12, "C": 26, "D": 62, "E": 62})
 
     construire_garde(wb, ident, avec_n1)
+    construire_identification(wb, ident, "SYSCOHADA révisé",
+                              "Système minimal de trésorerie")
+    construire_fiche_notes(
+        wb,
+        [("Partie 1 : Notes sur le bilan",
+          [("NOTE 1", "Tableau SMT de suivi du matériel, du mobilier et des cautions"),
+           ("NOTE 2", "État des stocks"),
+           ("NOTE 3", "État des créances et des dettes non échues")]),
+         ("Partie 2 : Notes sur le compte de résultat et pièces de tenue",
+          [("NOTE 4", "Journal de trésorerie SMT"),
+           ("", "Journal de suivi des créances impayées"),
+           ("", "Journal de suivi des dettes à payer")])],
+        ident, "SYSCOHADA - Système minimal de trésorerie (AUDCIF, Titre X)",
+        note_pied="(1) A : applicable ; N/A : non applicable. Ne pas joindre "
+                  "les notes non documentées ; supprimer les lignes non "
+                  "chiffrées avant remise.")
+    ordonner_feuilles(wb, ["GARDE", "IDENTIFICATION", "BILAN ACTIF",
+                           "BILAN PASSIF", CR_NOM, "FICHE NOTES",
+                           "NOTE 1 IMMOBILISATIONS", "NOTE 2 STOCKS",
+                           "NOTE 3 CREANCES-DETTES", "NOTE 4 JOURNAL TRESORERIE",
+                           "JOURNAUX DE SUIVI", "BALANCE", "BALANCE_N1",
+                           "CONTROLES", "ANOMALIES"])
+    retirer_tirets(wb)
 
     wb.save(args.sortie)
     print(f"États SMT écrits : {args.sortie}")

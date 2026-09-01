@@ -44,7 +44,8 @@ from formules_sycebnl import (
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
-    largeurs, style_titre,
+    largeurs, style_titre, retirer_tirets, construire_identification,
+    construire_fiche_notes, ordonner_feuilles,
 )
 import notes_sycebnl
 from notes_projets import NOTES_PROJETS
@@ -389,7 +390,8 @@ def construire_garde_pd(wb, ident, avec_n1):
     g[f"B{r}"] = "Composition du jeu d'états (Acte uniforme, art. 4)"
     g[f"B{r}"].font = F_SOUS_TITRE
     r += 1
-    for s in ["Tableau emplois-ressources",
+    for s in ["Fiche d'identification et fiche récapitulative des notes",
+              "Tableau emplois-ressources",
               "Tableau d'exécution budgétaire",
               "Tableau de réconciliation de trésorerie",
               "Bilan : ACTIF et PASSIF (une feuille chacun)",
@@ -499,6 +501,24 @@ def main():
     construire_controles_pd(wb, bal, refs, controles_notes, avec_n1)
     construire_anomalies(wb, anomalies)
     construire_garde_pd(wb, ident, avec_n1)
+    construire_identification(wb, ident, "SYCEBNL",
+                              "Projets de développement et assimilés")
+    parties = notes_sycebnl.parties_depuis_specs(
+        NOTES_PROJETS,
+        [("Partie 1 : Informations générales", 1, 1),
+         ("Partie 2 : Notes sur le tableau emplois-ressources, le tableau "
+          "d'exécution budgétaire et la réconciliation de trésorerie", 2, 2),
+         ("Partie 3 : Notes sur le bilan", 3, 13),
+         ("Partie 4 : Notes sur le compte d'exploitation", 14, 24)])
+    construire_fiche_notes(wb, parties, ident,
+                           "SYCEBNL - Projets de développement et assimilés "
+                           "(Partie 4, ch. 3, section 6)")
+    ordonner_feuilles(wb, ["GARDE", "IDENTIFICATION", "Emplois-Ressources",
+                           "Execution budgetaire", "Reconciliation tresorerie",
+                           "ACTIF", "PASSIF", CR_NOM, "FICHE NOTES"]
+                      + [spec["feuille"] for spec in NOTES_PROJETS]
+                      + ["BALANCE", "BALANCE_N1", "CONTROLES", "ANOMALIES"])
+    retirer_tirets(wb)
 
     wb.save(args.sortie)
     print(f"États écrits : {args.sortie}")

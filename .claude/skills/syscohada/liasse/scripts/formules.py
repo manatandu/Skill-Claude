@@ -185,3 +185,142 @@ def format_montants(ws, cellules):
     """Applique le format montant à une liste de références 'B12'..."""
     for ref in cellules:
         ws[ref].number_format = FMT_MONTANT
+
+
+# --------------------------------------------------------------------------
+# Nettoyage typographique et pages de présentation communes
+# --------------------------------------------------------------------------
+
+def retirer_tirets(wb):
+    """Remplace tirets cadratins (—) et demi-cadratins (–) par un tiret
+    simple dans toutes les cellules texte : aucun « — » dans les livrables."""
+    from openpyxl.cell.cell import MergedCell
+    for ws in wb.worksheets:
+        for row in ws.iter_rows():
+            for c in row:
+                if isinstance(c, MergedCell):
+                    continue
+                v = c.value
+                if isinstance(v, str) and ("—" in v or "–" in v):
+                    v = v.replace(" — ", " - ").replace("—", "-")
+                    v = v.replace(" – ", " - ").replace("–", "-")
+                    c.value = v
+
+
+def construire_identification(wb, ident, referentiel, systeme, position=1):
+    """Fiche d'identification et de renseignements généraux (page de
+    présentation) : champs connus pré-remplis, le reste à compléter."""
+    entite, identifiant, exercice, duree = ident
+    ws = wb.create_sheet("IDENTIFICATION", position)
+    ws.sheet_view.showGridLines = False
+    style_titre(ws, "A1:D1", "FICHE D'IDENTIFICATION ET RENSEIGNEMENTS GENERAUX")
+    ws.merge_cells("A2:D2")
+    ws["A2"] = f"{referentiel} - {systeme}"
+    ws["A2"].font = F_SOUS_TITRE
+    ws["A2"].alignment = AL_CENTRE
+    champs = [
+        ("Dénomination / raison sociale de l'entité", entite),
+        ("Sigle usuel", ""),
+        ("Forme juridique / type d'entité", ""),
+        ("Numéro d'identification", identifiant),
+        ("Registre (RCCM, F92, convention...)", ""),
+        ("Adresse complète (immeuble, rue, quartier)", ""),
+        ("Ville / Pays", ""),
+        ("Téléphone", ""),
+        ("Adresse électronique", ""),
+        ("Activité principale / mission", ""),
+        ("Référentiel comptable", referentiel),
+        ("Système d'états financiers", systeme),
+        ("Exercice clos le", exercice),
+        ("Durée de l'exercice (en mois)", duree),
+        ("Exercice précédent clos le", ""),
+        ("Unité monétaire légale de présentation", ""),
+        ("Date d'arrêté effectif des comptes", ""),
+        ("Organe ayant arrêté les états financiers", ""),
+        ("Responsable des états financiers (nom et qualité)", ""),
+        ("Cabinet / expert-comptable (nom, adresse, téléphone)", ""),
+        ("Auditeur / commissaire aux comptes, le cas échéant", ""),
+    ]
+    r = 3
+    for lab, val in champs:
+        r += 1
+        ws.cell(r, 1, lab)
+        ws.cell(r, 1).font = F_GRAS
+        ws.cell(r, 1).alignment = AL_GAUCHE
+        ws.merge_cells(start_row=r, start_column=2, end_row=r, end_column=4)
+        ws.cell(r, 2, val)
+        for col in (1, 2, 3, 4):
+            ws.cell(r, col).border = BORD_FIN
+    r += 2
+    ws.cell(r, 1, "Visa et signatures")
+    ws.cell(r, 1).font = F_SOUS_TITRE
+    r += 1
+    for lab in ("Signataire des états financiers (nom, qualité, date, signature)",
+                "Visa de l'expert-comptable ou du comptable agréé"):
+        r += 1
+        ws.cell(r, 1, lab)
+        ws.cell(r, 1).alignment = AL_GAUCHE
+        ws.merge_cells(start_row=r, start_column=2, end_row=r + 1, end_column=4)
+        for rr in (r, r + 1):
+            for col in (1, 2, 3, 4):
+                ws.cell(rr, col).border = BORD_FIN
+        r += 2
+    largeurs(ws, {"A": 46, "B": 22, "C": 22, "D": 22})
+    return ws
+
+
+def construire_fiche_notes(wb, parties, ident, sous_titre, position=None,
+                           note_pied=None):
+    """Fiche récapitulative des notes annexes présentées : colonnes
+    NOTES | INTITULÉS | A (Applicable) | N/A (Non applicable).
+    `parties` : liste de (titre_partie, [(numero, intitule), ...])."""
+    entite, identifiant, exercice, duree = ident
+    ws = (wb.create_sheet("FICHE NOTES", position) if position is not None
+          else wb.create_sheet("FICHE NOTES"))
+    ws.sheet_view.showGridLines = False
+    style_titre(ws, "A1:D1", "FICHE RECAPITULATIVE DES NOTES ANNEXES PRESENTEES")
+    ws.merge_cells("A2:D2")
+    ws["A2"] = sous_titre
+    ws["A2"].font = F_SOUS_TITRE
+    ws["A2"].alignment = AL_CENTRE
+    ws["A4"] = f"Désignation entité : {entite}"
+    ws["A4"].font = F_GRAS
+    ws["A5"] = f"Numéro d'identification : {identifiant}"
+    ws["C4"] = f"Exercice clos le : {exercice}"
+    ws["C4"].font = F_GRAS
+    ws["C5"] = f"Durée (en mois) : {duree}"
+    r = 7
+    ws.cell(r, 1, "NOTES")
+    ws.cell(r, 2, "INTITULES")
+    ws.cell(r, 3, "A (1)")
+    ws.cell(r, 4, "N/A (1)")
+    style_entetes(ws, r, 1, 4)
+    debut = r + 1
+    for titre_partie, lignes in parties:
+        r += 1
+        ws.cell(r, 1, titre_partie)
+        ws.cell(r, 1).font = F_SOUS_TITRE
+        ws.merge_cells(start_row=r, start_column=1, end_row=r, end_column=4)
+        for numero, intitule in lignes:
+            r += 1
+            ws.cell(r, 1, numero)
+            ws.cell(r, 2, intitule)
+    style_zone_donnees(ws, debut, r, 1, 4)
+    r += 2
+    ws.cell(r, 1, note_pied or
+            "(1) A : applicable ; N/A : non applicable. Les notes non "
+            "documentées ne doivent pas être jointes aux états financiers ; "
+            "dans une note, les lignes non chiffrées doivent être supprimées.")
+    ws.merge_cells(start_row=r, start_column=1, end_row=r + 1, end_column=4)
+    ws.cell(r, 1).alignment = AL_GAUCHE
+    largeurs(ws, {"A": 12, "B": 78, "C": 8, "D": 8})
+    return ws
+
+
+def ordonner_feuilles(wb, ordre):
+    """Réordonne les feuilles : celles citées dans `ordre` d'abord (dans cet
+    ordre), les autres ensuite dans leur ordre actuel."""
+    pos = {nom: i for i, nom in enumerate(ordre)}
+    base = len(ordre)
+    actuels = {ws.title: i for i, ws in enumerate(wb._sheets)}
+    wb._sheets.sort(key=lambda w: pos.get(w.title, base + actuels[w.title]))

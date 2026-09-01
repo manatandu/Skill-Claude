@@ -40,7 +40,7 @@ from lib_mapping import (
     charger_maquette, normaliser_compte, compte_dans_expr, token_match, Expr,
 )
 from formules import (
-    formule_tokens, formule_expr,
+    formule_tokens, formule_expr, retirer_tirets,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, largeurs,
@@ -805,6 +805,7 @@ def main():
     ecrire_garde(wb, args.entite, args.identifiant, args.exercice, args.duree,
                  avec_n1, avec_mvt)
 
+    retirer_tirets(wb)
     wb.save(args.sortie)
     print(f"Liasse écrite : {args.sortie}")
     print("Ouvrir dans Excel/LibreOffice (ou convertir via soffice --headless "

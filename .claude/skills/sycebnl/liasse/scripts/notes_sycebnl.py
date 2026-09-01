@@ -1545,3 +1545,23 @@ def _render_bailleur(ws, spec, ident):
     largeurs(ws, {"A": 40, "B": 17, "C": 16, "D": 14, "E": 17, "F": 16,
                   "G": 14})
     return {}
+
+
+def parties_depuis_specs(specs, decoupage):
+    """Construit les parties de la fiche récapitulative depuis les specs de
+    notes. `decoupage` : liste de (titre_partie, borne_min, borne_max) sur le
+    numéro de tête de la note (5A -> 5)."""
+    import re as _re
+    parties = [(titre, []) for titre, _, _ in decoupage]
+    for spec in specs:
+        feuille = spec["feuille"]
+        m = _re.match(r"NOTE (\d+)", feuille)
+        if not m:
+            continue
+        num = int(m.group(1))
+        for i, (_, lo, hi) in enumerate(decoupage):
+            if lo <= num <= hi:
+                parties[i][1].append((feuille.replace("NOTE", "Note"),
+                                      spec["titre"]))
+                break
+    return parties

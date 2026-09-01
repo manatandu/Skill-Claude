@@ -39,7 +39,8 @@ from formules_sycebnl import (
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
-    largeurs, style_titre,
+    largeurs, style_titre, retirer_tirets, construire_identification,
+    construire_fiche_notes, ordonner_feuilles,
 )
 import notes_sycebnl
 
@@ -483,7 +484,8 @@ def construire_garde(wb, ident, avec_n1):
     g[f"B{r}"] = "Composition du jeu d'états (Acte uniforme, art. 4)"
     g[f"B{r}"].font = F_SOUS_TITRE
     r += 1
-    for s in ["Bilan : ACTIF et PASSIF (une feuille chacun)",
+    for s in ["Fiche d'identification et fiche récapitulative des notes",
+              "Bilan : ACTIF et PASSIF (une feuille chacun)",
               "Compte de résultat",
               "Tableau des flux de trésorerie (TFT, méthode directe)",
               "Notes annexes 1 à 35 (une note par feuille, "
@@ -617,6 +619,24 @@ def main():
     construire_controles(wb, bal, refs, controles_notes, avec_n1)
     construire_anomalies(wb, anomalies)
     construire_garde(wb, ident, avec_n1)
+    construire_identification(wb, ident, "SYCEBNL",
+                              "Associations et ordres professionnels - "
+                              "Système normal")
+    parties = notes_sycebnl.parties_depuis_specs(
+        notes_sycebnl.NOTES_ASSOCIATIONS,
+        [("Partie 1 : Informations générales", 1, 4),
+         ("Partie 2 : Notes sur le bilan", 5, 22),
+         ("Partie 3 : Notes sur le compte de résultat", 23, 32),
+         ("Partie 4 : Autres informations", 33, 35)])
+    construire_fiche_notes(wb, parties, ident,
+                           "SYCEBNL - Associations et ordres professionnels "
+                           "(Partie 4, ch. 2, section 4)")
+    ordonner_feuilles(wb, ["GARDE", "IDENTIFICATION", "ACTIF", "PASSIF",
+                           CR_NOM, "TFT", "FICHE NOTES"]
+                      + [spec["feuille"] for spec in
+                         notes_sycebnl.NOTES_ASSOCIATIONS]
+                      + ["BALANCE", "BALANCE_N1", "CONTROLES", "ANOMALIES"])
+    retirer_tirets(wb)
 
     wb.save(args.sortie)
     print(f"États écrits : {args.sortie}")

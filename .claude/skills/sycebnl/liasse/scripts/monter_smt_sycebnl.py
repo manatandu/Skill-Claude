@@ -38,7 +38,8 @@ from formules_sycebnl import (
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
-    largeurs, style_titre,
+    largeurs, style_titre, retirer_tirets, construire_identification,
+    construire_fiche_notes, ordonner_feuilles,
 )
 from monter_etats_sycebnl import lire_balance, entete_etat
 
@@ -526,7 +527,8 @@ def main():
         g[f"D{r}"] = v
         r += 1
     r += 1
-    for s in ["Bilan (GA→GZ / HA→HZ), une feuille par volet",
+    for s in ["Fiche d'identification et fiche récapitulative des notes",
+              "Bilan (GA→GZ / HA→HZ), une feuille par volet",
               "Compte de résultat (KA→KZC)",
               "Notes annexes 1 à 5",
               "Feuilles d'audit : BALANCE, BALANCE_N1, CONTROLES, ANOMALIES"]:
@@ -534,6 +536,26 @@ def main():
         r += 1
     largeurs(g, {"A": 3, "B": 38, "C": 12, "D": 26, "E": 14, "F": 14})
 
+    construire_identification(wb, ident, "SYCEBNL",
+                              "Système minimal de trésorerie")
+    construire_fiche_notes(
+        wb,
+        [("Partie 1 : Notes sur le bilan",
+          [("Note 1", "Tableau d'acquisition et de suivi du matériel, du "
+                      "mobilier et des cautions"),
+           ("Note 2", "État des stocks"),
+           ("Note 3", "État des créances et des dettes non échues"),
+           ("Note 5", "Dotations")]),
+         ("Partie 2 : Notes sur le compte de résultat",
+          [("Note 4", "Journal unique de trésorerie")])],
+        ident, "SYCEBNL - Système minimal de trésorerie (Partie 4, ch. 4)")
+    ordonner_feuilles(wb, ["GARDE", "IDENTIFICATION", "BILAN ACTIF",
+                           "BILAN PASSIF", CR_NOM, "FICHE NOTES",
+                           "NOTE 1 IMMOBILISATIONS", "NOTE 2 STOCKS",
+                           "NOTE 3 CREANCES-DETTES",
+                           "NOTE 4 JOURNAL TRESORERIE", "NOTE 5 DOTATIONS",
+                           "BALANCE", "BALANCE_N1", "CONTROLES", "ANOMALIES"])
+    retirer_tirets(wb)
     wb.save(args.sortie)
     print(f"États SMT SYCEBNL écrits : {args.sortie}")
     bloquants = [a for a in anomalies if a["gravite"] in ("BLOQUANT", "A_TRAITER")]
