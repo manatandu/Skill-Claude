@@ -41,6 +41,7 @@ from lib_mapping import (
 )
 from formules import (
     formule_tokens, formule_expr, retirer_tirets, q, nom_feuille,
+    ecrire_feuille_balance,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, largeurs,
@@ -131,6 +132,16 @@ def reskin_tft_sn(wb):
                              color="FFFFFF" if sombre else "000000")
 
 
+def plage_bilan(ws, defaut):
+    """Première et dernière ligne du corps d'un état du gabarit (toute ligne
+    portant un code REF en colonne A sous le bandeau d'en-têtes) : le bilan
+    paysage reprend ainsi le bloc entier, rubriques et TOTAL GENERAL
+    compris, et pas seulement les postes alimentés par le moteur."""
+    lignes = [r for r in range(9, ws.max_row + 1)
+              if str(ws.cell(r, 1).value or "").strip()]
+    return (min(lignes), max(lignes)) if lignes else defaut
+
+
 def parties_depuis_fiche_r4(wb):
     """Intitulés officiels des notes (FICHE R4) groupés en parties, pour la
     TABLE COMMENTAIRE."""
@@ -168,10 +179,20 @@ def parties_depuis_fiche_r4(wb):
 ENTETES = {
     "compte":   ["cpte", "compte", "n° compte", "numero", "num compte", "code"],
     "libelle":  ["intitul", "libell", "designation", "désignation"],
+    # soldes d'ouverture (repérés avant les soldes de clôture : « solde
+    # d'ouverture débit » ne doit pas être pris pour un « solde débit »)
+    "od":       ["ouverture debit", "solde initial debit", "initial debit",
+                 "a nouveau debit", "a-nouveau debit", "an debit", "si debit",
+                 "debit ouverture", "debit initial"],
+    "oc":       ["ouverture credit", "solde initial credit", "initial credit",
+                 "a nouveau credit", "a-nouveau credit", "an credit",
+                 "si credit", "credit ouverture", "credit initial"],
     "sd":       ["s.f. debit", "sf debit", "solde final debit", "solde debit",
-                 "sf_d", "final debit", "debit final"],
+                 "sf_d", "final debit", "debit final", "cloture debit",
+                 "debit cloture"],
     "sc":       ["s.f. credit", "sf credit", "solde final credit", "solde credit",
-                 "sf_c", "final credit", "credit final"],
+                 "sf_c", "final credit", "credit final", "cloture credit",
+                 "credit cloture"],
     "md":       ["mouvement debit", "mvt debit", "m.debit", "mouvements debit",
                  "debit mouvement", "debit periode", "mouv. debit"],
     "mc":       ["mouvement credit", "mvt credit", "m.credit", "mouvements credit",
@@ -259,6 +280,7 @@ def lire_balance(chemin):
                        and idx["libelle"] < len(row) else "",
             "sd": num(idx.get("sd")), "sc": num(idx.get("sc")),
             "md": num(idx.get("md")), "mc": num(idx.get("mc")),
+            "od": num(idx.get("od")), "oc": num(idx.get("oc")),
         })
     return lignes, idx
 
@@ -696,38 +718,13 @@ def injecter_tft(wb, tft):
 # Feuilles GARDE / BALANCE / CONTROLES / ANOMALIES
 # --------------------------------------------------------------------------
 
-def _affectations(l, rubs):
-    """Liste des refs de rubriques qui captent ce compte (audit)."""
-    refs = []
-    for ref, r in rubs.items():
-        if r.formule:
-            continue
-        if compte_dans_expr(l["compte"], r.brut) or compte_dans_expr(l["compte"], r.amort):
-            refs.append(ref)
-    return ", ".join(refs)
-
-
-def ecrire_balance(wb, nom, bal, rubs):
+def ecrire_balance(wb, nom, bal, rubs=None):
+    """Feuille de balance à la présentation attendue (comptes croissants,
+    ouverture / mouvements / clôture en débit-crédit, totaux généraux)."""
     nom = nom_feuille(nom)
     if nom in wb.sheetnames:
         del wb[nom]
-    b = wb.create_sheet(nom)
-    entetes = ["Compte", "Intitulé", "Préfixe 2", "Préfixe 3", "Préfixe 4",
-               "Solde final débit", "Solde final crédit",
-               "Mouvement débit", "Mouvement crédit", "Poste(s) d'affectation"]
-    b.append(entetes)
-    style_entetes(b, 1, 1, len(entetes))
-    for l in bal:
-        c = l["compte"]
-        b.append([c, l["libelle"], c[:2], c[:3], c[:4],
-                  round(l["sd"], 2), round(l["sc"], 2),
-                  round(l.get("md", 0.0), 2), round(l.get("mc", 0.0), 2),
-                  _affectations(l, rubs)])
-    style_zone_donnees(b, 2, b.max_row, 1, len(entetes), cols_montant=(6, 7, 8, 9))
-    largeurs(b, {"A": 12, "B": 42, "C": 9, "D": 9, "E": 9, "F": 15, "G": 15,
-                 "H": 15, "I": 15, "J": 22})
-    b.freeze_panes = "A2"
-    return b
+    return ecrire_feuille_balance(wb, nom, bal)
 
 
 def ecrire_garde(wb, entite, identifiant, exercice, duree, avec_n1, avec_mvt):
@@ -755,8 +752,10 @@ def ajouter_controles(wb, bal, zh_val, avec_n1):
     style_entetes(ctl, 1, 1, 3)
     B = q(NOM_BALANCE)
     lignes = [
-        ("Total solde débit balance", f"=SUM({B}!F2:F{n+1})", ""),
-        ("Total solde crédit balance", f"=SUM({B}!G2:G{n+1})", ""),
+        ("Total solde de clôture débit balance",
+         f"=SUM({B}!G2:G{n+1})", ""),
+        ("Total solde de clôture crédit balance",
+         f"=SUM({B}!H2:H{n+1})", ""),
         ("Écart balance (doit être 0)", "=B2-B3", 0),
         ("Total général actif net (BZ)", "=ACTIF!F40", ""),
         ("Total général passif (DZ)", "=PASSIF!D37", ""),
@@ -895,16 +894,20 @@ def main():
     ident = (args.entite, args.identifiant, args.exercice, args.duree)
     construire_couverture(wb, ident, "LIASSE SYSTEME NORMAL")
     construire_controle_balance(wb, avec_n1, len(bal), len(bal1 or []))
+    deb_a, fin_a = plage_bilan(wb["ACTIF"],
+                               (min(ACTIF_ROW.values()),
+                                max(ACTIF_ROW.values())))
+    deb_p, fin_p = plage_bilan(wb["PASSIF"],
+                               (min(PASSIF_ROW.values()),
+                                max(PASSIF_ROW.values())))
     construire_bilan_paysage(
         wb, ident,
-        {"feuille": "ACTIF", "lig_debut": min(ACTIF_ROW.values()),
-         "lig_fin": max(ACTIF_ROW.values()), "col_note": "C",
-         "libelle": "ACTIF",
+        {"feuille": "ACTIF", "lig_debut": deb_a, "lig_fin": fin_a,
+         "col_note": "C", "libelle": "ACTIF",
          "cols": [("BRUT", "D"), ("AMORT et DEPREC.", "E"), ("NET", "F"),
                   ("NET N-1", "G")]},
-        {"feuille": "PASSIF", "lig_debut": min(PASSIF_ROW.values()),
-         "lig_fin": max(PASSIF_ROW.values()), "col_note": "C",
-         "libelle": "PASSIF",
+        {"feuille": "PASSIF", "lig_debut": deb_p, "lig_fin": fin_p,
+         "col_note": "C", "libelle": "PASSIF",
          "cols": [("NET", "D"), ("NET N-1", "E")]},
         titre="BILAN", page_ref="BILAN SYSTEME NORMAL\nPAGE 1/1")
     construire_table_commentaires(wb, parties_depuis_fiche_r4(wb), ident)

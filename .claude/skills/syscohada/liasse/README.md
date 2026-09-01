@@ -126,6 +126,26 @@ professionnelle réelle (logiciel ETAFI, dépôt DGI), portée par
   BALANCE, Couverture, Garde, fiches, Bilan paysage, états, NOTES ANNEXES,
   notes, TABLE COMMENTAIRE, puis CONTROLES et ANOMALIES (audit interne).
 
+## Feuilles de balance
+
+`BALANCE N` et `BALANCE N-1` portent huit colonnes, comptes classés par
+numéro croissant :
+
+| A | B | C - D | E - F | G - H |
+|---|---|---|---|---|
+| Compte | Intitulé | Solde d'ouverture débit / crédit | Mouvement débit / crédit | Solde de clôture débit / crédit |
+
+Un **TOTAL GENERAL** ferme la feuille (un total par solde, en débit et en
+crédit) suivi d'une ligne de contrôle d'équilibre (débit - crédit, doit être
+0) ; la feuille `CONTROLE BALANCE` reprend les trois blocs avec leur verdict.
+
+Le solde d'ouverture vient des colonnes du fichier fourni quand elles
+existent (en-têtes reconnus : « solde initial », « à nouveau », « SI »,
+« ouverture »…), sinon il est reconstitué par *clôture - mouvements* quand la
+balance porte ses mouvements. Sans l'une ni l'autre source, la colonne reste
+à zéro : rien n'est inventé. Les formules des états et des notes visent
+toujours les colonnes de clôture (G/H) et de mouvement (E/F).
+
 Cas particulier du **Système normal** : les feuilles viennent du gabarit
 officiel OHADA et gardent leurs noms (`ACTIF`, `PASSIF`, `Compte de
 Résultat`, `TFT`, `NOTE x`, `FICHE R1` à `R4` qui tiennent lieu de Fiche 1

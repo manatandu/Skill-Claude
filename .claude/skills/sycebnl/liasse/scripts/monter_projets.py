@@ -432,8 +432,10 @@ def construire_controles_pd(wb, bal, refs, controles_notes, avec_n1):
     A, P, R = q(NOM_ACTIF), q(NOM_PASSIF), q(CR_NOM)
     B = q(NOM_BALANCE)
     lignes = [
-        ("Total solde débit balance", f"=SUM({B}!F2:F{n+1})", ""),
-        ("Total solde crédit balance", f"=SUM({B}!G2:G{n+1})", ""),
+        ("Total solde de clôture débit balance",
+         f"=SUM({B}!G2:G{n+1})", ""),
+        ("Total solde de clôture crédit balance",
+         f"=SUM({B}!H2:H{n+1})", ""),
         ("Écart balance (doit être 0)", "=B2-B3", 0),
         ("Total général actif (BZ)", f"={A}!D{ac['BZ']}", ""),
         ("Total général passif (DZ)", f"={P}!D{pa['DZ']}", ""),

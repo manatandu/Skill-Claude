@@ -37,6 +37,7 @@ import openpyxl
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from formules import (
     formule_tokens, set_lignes_max, q, nom_feuille,
+    ecrire_feuille_balance,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
@@ -452,21 +453,7 @@ def construire_garde(wb, ident, avec_n1):
 
 
 def ecrire_balance(wb, nom, bal):
-    b = wb.create_sheet(nom_feuille(nom))
-    entetes = ["Compte", "Intitulé", "Préfixe 2", "Préfixe 3", "Préfixe 4",
-               "Solde final débit", "Solde final crédit",
-               "Mouvement débit", "Mouvement crédit"]
-    b.append(entetes)
-    style_entetes(b, 1, 1, len(entetes))
-    for l in bal:
-        c = l["compte"]
-        b.append([c, l["libelle"], c[:2], c[:3], c[:4],
-                  round(l["sd"], 2), round(l["sc"], 2),
-                  round(l.get("md", 0.0), 2), round(l.get("mc", 0.0), 2)])
-    style_zone_donnees(b, 2, b.max_row, 1, len(entetes), cols_montant=(6, 7, 8, 9))
-    largeurs(b, {"A": 12, "B": 42, "C": 9, "D": 9, "E": 9, "F": 15, "G": 15,
-                 "H": 15, "I": 15})
-    b.freeze_panes = "A2"
+    return ecrire_feuille_balance(wb, nom, bal)
 
 
 def detecter_anomalies_smt(bal, seuil=1.0):
@@ -517,8 +504,10 @@ def construire_controles(wb, bal, avec_n1, kzc_row, infos_bilan):
     style_entetes(ctl, 1, 1, 3)
     B = q(NOM_BALANCE)
     lignes = [
-        ("Total solde débit balance", f"=SUM({B}!F2:F{n+1})", ""),
-        ("Total solde crédit balance", f"=SUM({B}!G2:G{n+1})", ""),
+        ("Total solde de clôture débit balance",
+         f"=SUM({B}!G2:G{n+1})", ""),
+        ("Total solde de clôture crédit balance",
+         f"=SUM({B}!H2:H{n+1})", ""),
         ("Écart balance (doit être 0)", "=B2-B3", 0),
         ("Total actif", f"={q(NOM_ACTIF)}!D{infos_bilan['SAZ']}", ""),
         ("Total passif", f"={q(NOM_PASSIF)}!D{infos_bilan['SPZ']}", ""),
@@ -577,8 +566,7 @@ def main():
 
     anomalies = detecter_anomalies_smt(bal)
     construire_controles(wb, bal, avec_n1, kzc_row, infos_bilan)
-    construire_controle_balance(wb, avec_n1, len(bal), len(bal1 or []),
-                                cols=("F", "G", "H", "I"))
+    construire_controle_balance(wb, avec_n1, len(bal), len(bal1 or []))
 
     an = wb.create_sheet("ANOMALIES")
     an.append(["Gravité", "Compte", "Intitulé", "Problème", "Solution proposée"])

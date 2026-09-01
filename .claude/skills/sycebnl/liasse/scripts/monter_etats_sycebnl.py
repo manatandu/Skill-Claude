@@ -37,6 +37,7 @@ from lib_mapping_sycebnl import (
 )
 from formules_sycebnl import (
     formule_tokens, formule_expr, set_lignes_max, q, nom_feuille,
+    ecrire_feuille_balance,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
@@ -62,10 +63,25 @@ CR_NOM = "Résultat"
 ENTETES = {
     "compte":  ["cpte", "compte", "n° compte", "numero", "num compte", "code"],
     "libelle": ["intitul", "libell", "designation", "désignation"],
+    # soldes d'ouverture (repérés avant les soldes de clôture : « solde
+    # d'ouverture débit » ne doit pas être pris pour un « solde débit »)
+    "od":      ["ouverture debit", "solde initial debit", "initial debit",
+                "a nouveau debit", "a-nouveau debit", "an debit", "si debit",
+                "debit ouverture", "debit initial"],
+    "oc":      ["ouverture credit", "solde initial credit", "initial credit",
+                "a nouveau credit", "a-nouveau credit", "an credit",
+                "si credit", "credit ouverture", "credit initial"],
+    "md":      ["mouvement debit", "mvt debit", "m.debit", "mouvements debit",
+                "debit mouvement", "debit periode", "mouv. debit"],
+    "mc":      ["mouvement credit", "mvt credit", "m.credit",
+                "mouvements credit", "credit mouvement", "credit periode",
+                "mouv. credit"],
     "sd":      ["s.f. debit", "sf debit", "solde final debit", "solde debit",
-                "sf_d", "final debit", "debit final"],
+                "sf_d", "final debit", "debit final", "cloture debit",
+                "debit cloture"],
     "sc":      ["s.f. credit", "sf credit", "solde final credit", "solde credit",
-                "sf_c", "final credit", "credit final"],
+                "sf_c", "final credit", "credit final", "cloture credit",
+                "credit cloture"],
 }
 
 
@@ -147,6 +163,8 @@ def lire_balance(chemin):
                        and idx["libelle"] < len(row) else "",
             "sd": num(idx.get("sd")),
             "sc": num(idx.get("sc")),
+            "md": num(idx.get("md")), "mc": num(idx.get("mc")),
+            "od": num(idx.get("od")), "oc": num(idx.get("oc")),
         })
     return lignes, idx
 
@@ -470,32 +488,10 @@ def construire_tft(wb, rubs, avec_n1, ident):
 # Feuilles d'audit
 # --------------------------------------------------------------------------
 
-def _affectations(l, rubs):
-    refs = []
-    for ref, r in rubs.items():
-        if r.formule:
-            continue
-        if compte_dans_expr(l["compte"], r.brut) or compte_dans_expr(l["compte"], r.amort):
-            refs.append(ref)
-    return ", ".join(refs)
-
-
-def ecrire_balance(wb, nom, bal, rubs):
-    b = wb.create_sheet(nom_feuille(nom))
-    entetes = ["Compte", "Intitulé", "Préfixe 2", "Préfixe 3", "Préfixe 4",
-               "Solde final débit", "Solde final crédit", "", "",
-               "Poste(s) d'affectation"]
-    b.append(entetes)
-    style_entetes(b, 1, 1, len(entetes))
-    for l in bal:
-        c = l["compte"]
-        b.append([c, l["libelle"], c[:2], c[:3], c[:4],
-                  round(l["sd"], 2), round(l["sc"], 2), "", "",
-                  _affectations(l, rubs)])
-    style_zone_donnees(b, 2, b.max_row, 1, len(entetes), cols_montant=(6, 7))
-    largeurs(b, {"A": 12, "B": 42, "C": 9, "D": 9, "E": 9, "F": 15, "G": 15,
-                 "J": 22})
-    b.freeze_panes = "A2"
+def ecrire_balance(wb, nom, bal, rubs=None):
+    """Feuille de balance à la présentation attendue (comptes croissants,
+    ouverture / mouvements / clôture en débit-crédit, totaux généraux)."""
+    return ecrire_feuille_balance(wb, nom, bal)
 
 
 def construire_garde(wb, ident, avec_n1):
@@ -522,8 +518,10 @@ def construire_controles(wb, bal, refs, controles_notes, avec_n1):
     A, P, R = q(NOM_ACTIF), q(NOM_PASSIF), q(CR_NOM)
     B = q(NOM_BALANCE)
     lignes = [
-        ("Total solde débit balance", f"=SUM({B}!F2:F{n+1})", ""),
-        ("Total solde crédit balance", f"=SUM({B}!G2:G{n+1})", ""),
+        ("Total solde de clôture débit balance",
+         f"=SUM({B}!G2:G{n+1})", ""),
+        ("Total solde de clôture crédit balance",
+         f"=SUM({B}!H2:H{n+1})", ""),
         ("Écart balance (doit être 0)", "=B2-B3", 0),
         ("Total général actif net (BZ)", f"={A}!F{ac['BZ']}", ""),
         ("Total général passif (DZ)", f"={P}!D{pa['DZ']}", ""),

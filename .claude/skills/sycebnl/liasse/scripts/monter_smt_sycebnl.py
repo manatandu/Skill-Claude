@@ -35,6 +35,7 @@ import openpyxl
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from formules_sycebnl import (
     formule_tokens, set_lignes_max, q, nom_feuille,
+    ecrire_feuille_balance,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
@@ -420,18 +421,7 @@ def construire_note5(wb, ident):
 
 
 def ecrire_balance_smt(wb, nom, bal):
-    b = wb.create_sheet(nom_feuille(nom))
-    entetes = ["Compte", "Intitulé", "Préfixe 2", "Préfixe 3", "Préfixe 4",
-               "Solde final débit", "Solde final crédit"]
-    b.append(entetes)
-    style_entetes(b, 1, 1, len(entetes))
-    for l in bal:
-        c = l["compte"]
-        b.append([c, l["libelle"], c[:2], c[:3], c[:4],
-                  round(l["sd"], 2), round(l["sc"], 2)])
-    style_zone_donnees(b, 2, b.max_row, 1, len(entetes), cols_montant=(6, 7))
-    largeurs(b, {"A": 12, "B": 42, "C": 9, "D": 9, "E": 9, "F": 15, "G": 15})
-    b.freeze_panes = "A2"
+    return ecrire_feuille_balance(wb, nom, bal)
 
 
 def detecter_anomalies_smt(bal, seuil=1.0):
@@ -516,8 +506,10 @@ def main():
     style_entetes(ctl, 1, 1, 3)
     B = q(NOM_BALANCE)
     for lab, f, att in [
-            ("Total solde débit balance", f"=SUM({B}!F2:F{n+1})", ""),
-            ("Total solde crédit balance", f"=SUM({B}!G2:G{n+1})", ""),
+            ("Total solde de clôture débit balance",
+         f"=SUM({B}!G2:G{n+1})", ""),
+            ("Total solde de clôture crédit balance",
+         f"=SUM({B}!H2:H{n+1})", ""),
             ("Écart balance (doit être 0)", "=B2-B3", 0),
             ("Total actif (GZ)", f"={q(NOM_ACTIF)}!D{infos_bilan['GZ']}", ""),
             ("Total passif (HZ)", f"={q(NOM_PASSIF)}!D{infos_bilan['HZ']}", ""),

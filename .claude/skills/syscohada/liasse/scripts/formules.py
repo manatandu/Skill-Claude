@@ -9,21 +9,22 @@ balance qui l'alimentent — l'utilisateur peut auditer n'importe quel poste en
 suivant la formule.
 
 Disposition des feuilles BALANCE / BALANCE_N1 (écrites par monter_liasse.py) :
-  A Compte | B Intitulé | C Préfixe 2 | D Préfixe 3 | E Préfixe 4
-  F Solde final débit | G Solde final crédit | H Mouvement débit
-  I Mouvement crédit | J Poste(s) d'affectation
+  A Compte | B Intitulé | C Solde d'ouverture débit
+  D Solde d'ouverture crédit | E Mouvement débit | F Mouvement crédit
+  G Solde de clôture débit | H Solde de clôture crédit
 
-Un jeton de maquette de 2 chiffres se compare à la colonne C, de 3 chiffres à
-la colonne D, de 4 chiffres à la colonne E — même convention d'englobement que
-lib_mapping.token_match. La clause « sauf » se traduit par des SUMIF soustraits.
+Les jetons de maquette se comparent au numéro de compte (colonne A) par
+critère jocker (« 24* » capte 24 et ses subdivisions) — même convention
+d'englobement que lib_mapping.token_match. La clause « sauf » se traduit par
+des SUMIF soustraits.
 
 Modes de sommation (mêmes conventions que monter_liasse.somme) :
-  'd'  : somme des soldes débiteurs (colonne F seule)
-  'c'  : somme des soldes créditeurs (colonne G seule)
-  'nd' : net débiteur  (F - G)  — actif brut, charges
-  'nc' : net créditeur (G - F)  — amortissements, passif, produits
-  'md' : somme des mouvements débit (colonne H)
-  'mc' : somme des mouvements crédit (colonne I)
+  'd'  : somme des soldes de clôture débiteurs (colonne G seule)
+  'c'  : somme des soldes de clôture créditeurs (colonne H seule)
+  'nd' : net débiteur  (G - H)  — actif brut, charges
+  'nc' : net créditeur (H - G)  — amortissements, passif, produits
+  'md' : somme des mouvements débit (colonne E)
+  'mc' : somme des mouvements crédit (colonne F)
 """
 
 from openpyxl.styles import Font, PatternFill, Alignment, Border, Side
@@ -38,8 +39,10 @@ from theme_etafi import q, nom_feuille, normaliser_ident  # noqa: F401
 # Formules SUMIF sur la balance
 # --------------------------------------------------------------------------
 
-_MODE_COLS = {"d": ("F",), "c": ("G",), "nd": ("F", "G"), "nc": ("G", "F"),
-              "md": ("H",), "mc": ("I",)}
+# Colonnes des feuilles de balance (cf. theme_etafi.COLS_BALANCE) :
+#   C-D solde d'ouverture | E-F mouvements | G-H solde de clôture
+_MODE_COLS = {"d": ("G",), "c": ("H",), "nd": ("G", "H"), "nc": ("H", "G"),
+              "md": ("E",), "mc": ("F",)}
 
 # Dernière ligne des plages SUMIF : bornée (plutôt que colonne entière) pour
 # des recalculs rapides. Le moteur la cale sur la taille réelle de la balance.

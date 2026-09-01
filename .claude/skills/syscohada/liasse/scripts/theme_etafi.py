@@ -696,24 +696,97 @@ def construire_fiche2(wb, ident, sous_titre, page_ref="FICHE 2", lignes=20):
 
 
 # --------------------------------------------------------------------------
-# CONTROLE BALANCE
+# Feuilles de balance et CONTROLE BALANCE
 # --------------------------------------------------------------------------
 
+# Disposition des feuilles BALANCE N / BALANCE N-1 :
+#   A Compte | B Intitulé | C-D solde d'ouverture (débit, crédit)
+#   | E-F mouvements de l'exercice (débit, crédit)
+#   | G-H solde de clôture (débit, crédit)
+COLS_BALANCE = ("C", "D", "E", "F", "G", "H")
+
+ENTETES_BALANCE = ["Compte", "Intitulé",
+                   "Solde d'ouverture débit", "Solde d'ouverture crédit",
+                   "Mouvement débit", "Mouvement crédit",
+                   "Solde de clôture débit", "Solde de clôture crédit"]
+
+
+def _ouverture(l, avec_mvt):
+    """Solde d'ouverture d'un compte : les colonnes du fichier quand elles
+    existent, sinon reconstitué par clôture - mouvements quand la balance
+    porte ses mouvements (identité solde d'ouverture + mouvements = solde
+    de clôture). Jamais approximé au-delà : sans l'une ni l'autre source,
+    la colonne reste à zéro plutôt que d'inventer un chiffre."""
+    if l.get("od") or l.get("oc"):
+        return round(l.get("od") or 0.0, 2), round(l.get("oc") or 0.0, 2)
+    if not avec_mvt:
+        return 0.0, 0.0
+    net = ((l.get("sd") or 0.0) - (l.get("sc") or 0.0)
+           - ((l.get("md") or 0.0) - (l.get("mc") or 0.0)))
+    return (round(net, 2), 0.0) if net >= 0 else (0.0, round(-net, 2))
+
+
+def ecrire_feuille_balance(wb, nom, lignes):
+    """Écrit une feuille de balance : comptes triés par numéro croissant,
+    trois blocs de soldes (ouverture, mouvements, clôture) chacun en débit
+    et en crédit, TOTAL GENERAL par bloc et contrôle d'équilibre."""
+    ws = wb.create_sheet(nom_feuille(nom))
+    nb = len(ENTETES_BALANCE)
+    for i, h in enumerate(ENTETES_BALANCE, start=1):
+        ws.cell(1, i, h)
+    entetes_bande(ws, 1, 1, 1, nb)
+    ws.row_dimensions[1].height = 30
+    avec_mvt = any((l.get("md") or l.get("mc")) for l in lignes)
+    montants = tuple(range(3, nb + 1))
+    r = 1
+    for l in sorted(lignes, key=lambda x: str(x["compte"])):
+        r += 1
+        od, oc = _ouverture(l, avec_mvt)
+        ws.cell(r, 1, l["compte"])
+        ws.cell(r, 2, l.get("libelle", ""))
+        ws.cell(r, 3, od)
+        ws.cell(r, 4, oc)
+        ws.cell(r, 5, round(l.get("md") or 0.0, 2))
+        ws.cell(r, 6, round(l.get("mc") or 0.0, 2))
+        ws.cell(r, 7, round(l.get("sd") or 0.0, 2))
+        ws.cell(r, 8, round(l.get("sc") or 0.0, 2))
+        style_ligne(ws, r, 1, nb, "normal", cols_montant=montants)
+    fin = r
+    r += 1
+    ws.cell(r, 2, "TOTAL GENERAL")
+    for c in range(3, nb + 1):
+        lettre = get_column_letter(c)
+        ws.cell(r, c, f"=SUM({lettre}2:{lettre}{fin})" if fin >= 2 else 0)
+    style_ligne(ws, r, 1, nb, "general", cols_montant=montants)
+    ws.row_dimensions[r].height = 20
+    r += 1
+    ws.cell(r, 2, "Contrôle d'équilibre par solde (débit - crédit, doit "
+                  "être 0)")
+    for c in (3, 5, 7):
+        d, cr = get_column_letter(c), get_column_letter(c + 1)
+        ws.cell(r, c, f"={d}{r - 1}-{cr}{r - 1}")
+    style_ligne(ws, r, 1, nb, "inter", cols_montant=montants)
+    largeurs(ws, {"A": 12, "B": 42, "C": 16.5, "D": 16.5, "E": 16.5,
+                  "F": 16.5, "G": 16.5, "H": 16.5})
+    ws.freeze_panes = "A2"
+    return ws
+
+
 def construire_controle_balance(wb, avec_n1, n_lignes, n_lignes_n1,
-                                cols=("F", "G", "H", "I")):
-    """Feuille CONTROLE BALANCE (équilibre de la balance) : sommes des
-    colonnes de la balance et verdicts Equilibre / Déséquilibre.
-    `cols` : lettres (solde final débit, solde final crédit, mouvements
-    débit, mouvements crédit) dans les feuilles de balance."""
+                                cols=COLS_BALANCE):
+    """Feuille CONTROLE BALANCE (équilibre de la balance) : totaux des trois
+    blocs de soldes de chaque balance et verdict Equilibre / Déséquilibre
+    par bloc. `cols` : lettres (ouverture débit, ouverture crédit, mouvements
+    débit, mouvements crédit, clôture débit, clôture crédit)."""
     ws = wb.create_sheet("CONTROLE BALANCE")
     ws.sheet_view.showGridLines = False
-    largeurs(ws, {"A": 22.5, "B": 20.7, "C": 20.7, "D": 20.7, "E": 20.7})
-    sfd, sfc, mvd, mvc = cols
-    fusion(ws, 1, 1, 1, 5)
+    largeurs(ws, {"A": 22.5, "B": 20.7, "C": 20.7, "D": 20.7, "E": 20.7,
+                  "F": 20.7, "G": 20.7})
+    fusion(ws, 1, 1, 1, 7)
     c = ws.cell(1, 1, "EQUILIBRE DE LA BALANCE")
     c.font = Font(name="Arial", size=20, bold=True)
     c.alignment = AL_CENTRE
-    for cc in range(1, 6):
+    for cc in range(1, 8):
         ws.cell(1, cc).fill = PatternFill("solid", fgColor=C_CTRL_TITRE)
     ws.row_dimensions[1].height = 26
 
@@ -723,10 +796,12 @@ def construire_controle_balance(wb, avec_n1, n_lignes, n_lignes_n1,
         c.font = Font(name="Arial", size=14, bold=True)
         c.fill = PatternFill("solid", fgColor=C_GRIS)
         c.alignment = AL_CENTRE
-        heads = [("Mouvements Débit", mvd, False),
-                 ("Mouvements Crédit", mvc, False),
-                 ("Solde Final Débit", sfd, True),
-                 ("Solde Final Crédit", sfc, True)]
+        heads = [("Solde d'ouverture Débit", cols[0], True),
+                 ("Solde d'ouverture Crédit", cols[1], True),
+                 ("Mouvements Débit", cols[2], False),
+                 ("Mouvements Crédit", cols[3], False),
+                 ("Solde de clôture Débit", cols[4], True),
+                 ("Solde de clôture Crédit", cols[5], True)]
         for i, (lab, lettre, vert) in enumerate(heads):
             cc = 2 + i
             c = ws.cell(r0, cc, lab)
@@ -741,7 +816,7 @@ def construire_controle_balance(wb, avec_n1, n_lignes, n_lignes_n1,
             c.fill = PatternFill("solid", fgColor=C_GRIS)
             c.number_format = "#,##0"
             c.border = B_DONNEE
-        for c1, c2 in ((2, 3), (4, 5)):
+        for c1, c2 in ((2, 3), (4, 5), (6, 7)):
             fusion(ws, r0 + 2, c1, r0 + 2, c2)
             la = get_column_letter(c1)
             lb = get_column_letter(c2)
@@ -757,7 +832,7 @@ def construire_controle_balance(wb, avec_n1, n_lignes, n_lignes_n1,
         ws.row_dimensions[r0].height = 50
         ws.row_dimensions[r0 + 1].height = 21
         ws.row_dimensions[r0 + 2].height = 54
-        cadre(ws, r0, 1, r0 + 2, 5, MOYEN)
+        cadre(ws, r0, 1, r0 + 2, 7, MOYEN)
 
     bloc(2, "BALANCE N", NOM_BALANCE, max(2, n_lignes + 1))
     if avec_n1:
