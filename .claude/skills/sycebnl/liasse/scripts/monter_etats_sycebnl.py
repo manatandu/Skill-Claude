@@ -29,22 +29,31 @@ import os
 import sys
 
 import openpyxl
+from openpyxl.styles import Font, Alignment
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib_mapping_sycebnl import (
     charger_maquette, normaliser_compte, compte_dans_expr, groupe_compte,
 )
 from formules_sycebnl import (
-    formule_tokens, formule_expr, set_lignes_max,
+    formule_tokens, formule_expr, set_lignes_max, q, nom_feuille,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
     largeurs, style_titre, retirer_tirets, construire_identification,
     construire_fiche_notes, ordonner_feuilles,
+    ecrire_cartouche, titre_etat, entetes_bande, style_ligne, fusion, cadre,
+    MOYEN, set_identite_etendue, construire_couverture,
+    construire_garde_etafi, construire_fiche2, construire_controle_balance,
+    construire_table_commentaires, construire_bilan_paysage,
+    appliquer_police_arial, numeroter_pages, NOM_BALANCE, NOM_BALANCE_N1,
 )
 import notes_sycebnl
 
-CR_NOM = "Compte de Resultat"
+# Noms de feuilles du classeur produit (présentation du modèle ETAFI).
+NOM_ACTIF = "Bilan-Actif"
+NOM_PASSIF = "Bilan-Passif"
+CR_NOM = "Résultat"
 
 # --------------------------------------------------------------------------
 # Lecture souple d'une balance (inchangée)
@@ -246,40 +255,54 @@ def _c(f):
     return f[1:] if f and f.startswith("=") else (f or "0")
 
 
-def entete_etat(ws, titre, sous_titre, ident, ncols):
-    entite, identifiant, exercice, duree = ident
-    fin = chr(ord("A") + ncols - 1)
-    style_titre(ws, f"A1:{fin}1", titre)
-    ws.merge_cells(f"A2:{fin}2")
-    ws["A2"] = sous_titre
-    ws["A2"].font = F_SOUS_TITRE
-    ws["A2"].alignment = AL_CENTRE
-    ws["A4"] = f"Désignation entité : {entite}"
-    ws["A4"].font = F_GRAS
-    ws["A5"] = f"Numéro d'identification : {identifiant}"
-    col = chr(ord("A") + max(ncols - 2, 2))
-    ws[f"{col}4"] = f"Exercice clos le : {exercice}"
-    ws[f"{col}4"].font = F_GRAS
-    ws[f"{col}5"] = f"Durée (en mois) : {duree}"
-    ws.sheet_view.showGridLines = False
-    return 7
+# Niveaux de présentation des lignes remarquables (charte ETAFI) :
+# rubrique = fond jaune pâle, inter = total intermédiaire gris,
+# section = total de section vert, general = TOTAL GENERAL bleu nuit.
+NIVEAUX_ETAT = {
+    "AA": "rubrique", "AD": "rubrique", "AH": "rubrique", "AO": "inter",
+    "AZ": "section", "BT": "section", "BX": "section", "BZ": "general",
+    "CK": "inter", "CY": "inter", "CZ": "inter", "DD": "inter",
+    "DE": "section", "DV": "section", "DX": "section", "DZ": "general",
+    "XA": "section", "XB": "section", "XC": "inter", "XD": "inter",
+    "XE": "section",
+}
 
 
-def construire_etat(wb, nom, titre, rubs_etat, rubs, avec_n1, ident, actif):
+def construire_etat(wb, nom, titre, rubs_etat, rubs, avec_n1, ident, actif,
+                    page_ref=None, libelle_col=None):
     ws = wb.create_sheet(nom)
     ncols = 7 if actif else 5
-    r = entete_etat(ws, titre, "SYCEBNL — Associations et ordres professionnels, "
-                    "Système normal", ident, ncols)
+    ecrire_cartouche(ws, ident, page_ref or titre, ncols)
+    titre_etat(ws, titre, 2, ncols - 1, row=7,
+               taille=16 if "BILAN" in titre.upper() else 14)
+    # bandeau d'en-têtes sur deux lignes (8 et 9), à la façon du modèle
+    lib = libelle_col or ("ACTIF" if actif else "LIBELLES")
+    ws.cell(8, 1, "REF")
+    ws.cell(8, 2, lib)
+    ws.cell(8, 3, "NOTE")
+    for c in (1, 2, 3):
+        fusion(ws, 8, c, 9, c)
     if actif:
-        entetes = ["REF", "ACTIF", "Note", "Brut (N)",
-                   "Amort./déprec. (N)", "Net (N)", "Net (N-1)"]
+        fusion(ws, 8, 4, 8, 6)
+        ws.cell(8, 4, "EXERCICE AU 31/12/N")
+        ws.cell(9, 4, "BRUT")
+        ws.cell(9, 5, "AMORT et DEPREC.")
+        ws.cell(9, 6, "NET")
+        ws.cell(8, 7, "EXERCICE AU 31/12/N-1")
+        ws.cell(9, 7, "NET")
     else:
-        entetes = ["REF", nom.upper() if nom != CR_NOM else "LIBELLÉS",
-                   "Note", "Net (N)", "Net (N-1)"]
-    for i, h in enumerate(entetes, start=1):
-        ws.cell(r, i, h)
-    style_entetes(ws, r, 1, ncols)
+        ws.cell(8, 4, "EXERCICE AU 31/12/N")
+        ws.cell(9, 4, "NET")
+        ws.cell(8, 5, "EXERCICE AU 31/12/N-1")
+        ws.cell(9, 5, "NET")
+    entetes_bande(ws, 8, 9, 1, ncols)
+    ws.row_dimensions[8].height = 22
+    ws.row_dimensions[9].height = 22
+    ws.cell(8, 2).font = Font(name="Arial Black", size=11, bold=True)
+
+    r = 9
     debut = r + 1
+    cols_montant = tuple(range(4, ncols + 1))
     ref_row = {}
     for ref, rub in rubs_etat:
         r += 1
@@ -304,6 +327,12 @@ def construire_etat(wb, nom, titre, rubs_etat, rubs, avec_n1, ident, actif):
                 ws.cell(r, 4).value = formule_expr(rub.brut, "nc", "BALANCE") or 0
                 if avec_n1:
                     ws.cell(r, 5).value = formule_expr(rub.brut, "nc", "BALANCE_N1") or 0
+        niveau = NIVEAUX_ETAT.get(ref, "inter" if est_total else "normal")
+        style_ligne(ws, r, 1, ncols, niveau, cols_montant=cols_montant,
+                    col_ref=1)
+        c3 = ws.cell(r, 3)
+        c3.alignment = Alignment(horizontal="center", vertical="center")
+        ws.row_dimensions[r].height = 22
 
     # formules de totalisation
     for ref, composants in TOTAUX.items():
@@ -317,12 +346,10 @@ def construire_etat(wb, nom, titre, rubs_etat, rubs, avec_n1, ident, actif):
         for col in cols:
             lettre = chr(64 + col)
             ws.cell(row, col).value = "=" + "+".join(f"{lettre}{rr}" for rr in refs_rows)
-        style_ligne_total(ws, row, 1, ncols,
-                          cols_montant=tuple(range(4, ncols + 1)))
 
-    style_zone_donnees(ws, debut, r, 1, ncols,
-                       cols_montant=tuple(range(4, ncols + 1)))
-    largeurs(ws, {"A": 7, "B": 58, "C": 10, "D": 16, "E": 16, "F": 16, "G": 16})
+    cadre(ws, 8, 1, r, ncols, MOYEN)
+    largeurs(ws, {"A": 5.5, "B": 52, "C": 6.5, "D": 15.7, "E": 15.7,
+                  "F": 15.7, "G": 15.7})
     ws.freeze_panes = f"A{debut}"
     return ref_row
 
@@ -364,27 +391,38 @@ FONDS_PROPRES_CASH_REFS = ["CA", "CB", "CC", "CD", "CI", "CW", "CX"]
 DETTES_FIN_REFS = ["DA", "DB", "DC"]
 
 
+NIVEAUX_TFT = {"ZA": "cle", "ZB": "section", "ZC": "section",
+               "ZD": "inter", "ZE": "inter", "ZF": "cle", "ZG": "cle"}
+
+
 def construire_tft(wb, rubs, avec_n1, ident):
     ws = wb.create_sheet("TFT")
-    r = entete_etat(ws, "TABLEAU DES FLUX DE TRÉSORERIE",
-                    "SYCEBNL — Associations et ordres professionnels, "
-                    "méthode directe", ident, 5)
-    for i, h in enumerate(["REF", "LIBELLÉS", "Rep.", "Exercice N",
-                           "Exercice N-1"], start=1):
+    ecrire_cartouche(ws, ident, "TABLEAU DES FLUX\nDE TRESORERIE", 5)
+    titre_etat(ws, "TABLEAU DES FLUX DE TRESORERIE", 1, 5, row=7, taille=14)
+    r = 8
+    for i, h in enumerate(["REF", "LIBELLES", "Rep.", "EXERCICE N",
+                           "EXERCICE N-1"], start=1):
         ws.cell(r, i, h)
-    style_entetes(ws, r, 1, 5)
+    entetes_bande(ws, r, r, 1, 5)
+    ws.row_dimensions[r].height = 22
     ref_row = {}
     debut = r + 1
     for ref, lib, rep in TFT_LIGNES:
         r += 1
+        ws.row_dimensions[r].height = 22
         if ref == "__":
             ws.cell(r, 2, lib)
-            ws.cell(r, 2).font = F_SOUS_TITRE
+            style_ligne(ws, r, 2, 5, "bande", cols_montant=(4, 5))
+            style_ligne(ws, r, 1, 1, "normal")
             continue
         ws.cell(r, 1, ref)
         ws.cell(r, 2, lib)
         ws.cell(r, 3, rep)
         ref_row[ref] = r
+        style_ligne(ws, r, 1, 5, NIVEAUX_TFT.get(ref, "normal"),
+                    cols_montant=(4, 5), col_ref=1)
+        ws.cell(r, 3).alignment = Alignment(horizontal="center",
+                                            vertical="center")
 
     def tresorerie(bal):
         actif = "+".join(
@@ -402,7 +440,7 @@ def construire_tft(wb, rubs, avec_n1, ident):
         return "+".join(f"({_c(formule_expr(rubs[x].brut, 'nc', bal))})"
                         for x in refs)
 
-    C = {k: f"C{v}" for k, v in ref_row.items()}
+    C = {k: f"D{v}" for k, v in ref_row.items()}
     if avec_n1:
         ws[C["ZA"]] = f"={tresorerie('BALANCE_N1')}"
         ws[C["ZC"]] = (f"=-(({somme_brute(IMMOS_BRUT_REFS, 'BALANCE')})"
@@ -411,21 +449,20 @@ def construire_tft(wb, rubs, avec_n1, ident):
                        f"-({somme_passif(FONDS_PROPRES_CASH_REFS, 'BALANCE_N1')})")
         ws[C["ZE"]] = (f"=({somme_passif(DETTES_FIN_REFS, 'BALANCE')})"
                        f"-({somme_passif(DETTES_FIN_REFS, 'BALANCE_N1')})")
-        ws[C["ZF"]] = f"=({tresorerie('BALANCE')})-C{ref_row['ZA']}"
-        ws[C["ZB"]] = (f"=C{ref_row['ZF']}-C{ref_row['ZC']}"
-                       f"-C{ref_row['ZD']}-C{ref_row['ZE']}")
-        ws[C["ZG"]] = f"=C{ref_row['ZF']}+C{ref_row['ZA']}"
+        ws[C["ZF"]] = f"=({tresorerie('BALANCE')})-D{ref_row['ZA']}"
+        ws[C["ZB"]] = (f"=D{ref_row['ZF']}-D{ref_row['ZC']}"
+                       f"-D{ref_row['ZD']}-D{ref_row['ZE']}")
+        ws[C["ZG"]] = f"=D{ref_row['ZF']}+D{ref_row['ZA']}"
     else:
         ws.cell(ref_row["ZA"], 4, "Balance N-1 non fournie : TFT non calculé.")
-    for ref in ("ZA", "ZB", "ZC", "ZD", "ZE", "ZF", "ZG"):
-        style_ligne_total(ws, ref_row[ref], 1, 5, cols_montant=(4, 5))
-    style_zone_donnees(ws, debut, r, 1, 5, cols_montant=(4, 5))
+    cadre(ws, 8, 1, r, 5, MOYEN)
     r += 2
     ws.cell(r, 1, "(1) à l'exclusion des fournisseurs d'investissements. "
                   "Les lignes FA à FH (ventilation par nature des encaissements/"
                   "décaissements) se saisissent depuis le journal de trésorerie : "
                   "une balance de clôture ne porte pas cette information.")
-    largeurs(ws, {"A": 7, "B": 76, "C": 6, "D": 16, "E": 16})
+    ws.cell(r, 1).font = F_NORMAL
+    largeurs(ws, {"A": 5.5, "B": 72, "C": 6, "D": 15.7, "E": 15.7})
     return ref_row
 
 
@@ -444,7 +481,7 @@ def _affectations(l, rubs):
 
 
 def ecrire_balance(wb, nom, bal, rubs):
-    b = wb.create_sheet(nom)
+    b = wb.create_sheet(nom_feuille(nom))
     entetes = ["Compte", "Intitulé", "Préfixe 2", "Préfixe 3", "Préfixe 4",
                "Solde final débit", "Solde final crédit", "", "",
                "Poste(s) d'affectation"]
@@ -462,77 +499,50 @@ def ecrire_balance(wb, nom, bal, rubs):
 
 
 def construire_garde(wb, ident, avec_n1):
-    g = wb.create_sheet("GARDE", 0)
-    g.sheet_view.showGridLines = False
-    style_titre(g, "B2:F3", "ÉTATS FINANCIERS ANNUELS — SYCEBNL")
-    g.merge_cells("B4:F4")
-    g["B4"] = "Associations et ordres professionnels — Système normal"
-    g["B4"].font = F_SOUS_TITRE
-    g["B4"].alignment = AL_CENTRE
-    entite, identifiant, exercice, duree = ident
-    r = 6
-    for lab, v in [("Désignation de l'entité", entite or "—"),
-                   ("Numéro d'identification", identifiant or "—"),
-                   ("Exercice clos le", exercice or "—"),
-                   ("Durée de l'exercice (mois)", duree or "12"),
-                   ("Balance N-1 fournie", "Oui" if avec_n1 else "Non")]:
-        g[f"B{r}"] = lab
-        g[f"B{r}"].font = F_GRAS
-        g[f"D{r}"] = v
-        r += 1
-    r += 1
-    g[f"B{r}"] = "Composition du jeu d'états (Acte uniforme, art. 4)"
-    g[f"B{r}"].font = F_SOUS_TITRE
-    r += 1
-    for s in ["Fiche d'identification et fiche récapitulative des notes",
-              "Bilan : ACTIF et PASSIF (une feuille chacun)",
-              "Compte de résultat",
-              "Tableau des flux de trésorerie (TFT, méthode directe)",
-              "Notes annexes 1 à 35 (une note par feuille, "
-              "subdivisions 5A-5H, 17A/B, 18A/B, 29A/B)",
-              "Feuilles d'audit : BALANCE, BALANCE_N1, CONTROLES, ANOMALIES"]:
-        g[f"B{r}"] = "• " + s
-        r += 1
-    r += 1
-    g[f"B{r}"] = ("Chaque poste et chaque ligne de note calculée porte une "
-                  "formule Excel pointant vers la feuille BALANCE : tout "
-                  "chiffre est retraçable jusqu'au compte qui l'alimente. "
-                  "Les notes non documentées ne doivent pas être jointes aux "
-                  "états financiers ; supprimer les lignes non chiffrées "
-                  "avant remise (Acte uniforme, fiche récapitulative).")
-    g.merge_cells(f"B{r}:F{r+2}")
-    g[f"B{r}"].alignment = AL_GAUCHE
-    largeurs(g, {"A": 3, "B": 40, "C": 12, "D": 26, "E": 14, "F": 14})
+    construire_garde_etafi(
+        wb, ident,
+        bandeau="ETATS FINANCIERS NORMALISES\nDU SYSTEME COMPTABLE DES "
+                "ENTITES A BUT NON LUCRATIF (SYCEBNL)",
+        sous_bandeau="Associations, Ordres Professionnels, Fondations "
+                     "et Assimilées",
+        systeme="SYSTEME NORMAL",
+        documents=["Fiche d'identification et renseignements divers",
+                   "Bilan (actif et passif)",
+                   "Compte de résultat",
+                   "Tableau des flux de trésorerie",
+                   "Notes annexes"])
 
 
 def construire_controles(wb, bal, refs, controles_notes, avec_n1):
     ctl = wb.create_sheet("CONTROLES")
-    n = len(bal)
+    n = max(len(bal), 1)
     ctl.append(["Contrôle", "Valeur", "Attendu"])
     style_entetes(ctl, 1, 1, 3)
     ac, pa, cr = refs["ACTIF"], refs["PASSIF"], refs["CR"]
+    A, P, R = q(NOM_ACTIF), q(NOM_PASSIF), q(CR_NOM)
+    B = q(NOM_BALANCE)
     lignes = [
-        ("Total solde débit balance", f"=SUM(BALANCE!F2:F{n+1})", ""),
-        ("Total solde crédit balance", f"=SUM(BALANCE!G2:G{n+1})", ""),
+        ("Total solde débit balance", f"=SUM({B}!F2:F{n+1})", ""),
+        ("Total solde crédit balance", f"=SUM({B}!G2:G{n+1})", ""),
         ("Écart balance (doit être 0)", "=B2-B3", 0),
-        ("Total général actif net (BZ)", f"=ACTIF!F{ac['BZ']}", ""),
-        ("Total général passif (DZ)", f"=PASSIF!D{pa['DZ']}", ""),
+        ("Total général actif net (BZ)", f"={A}!F{ac['BZ']}", ""),
+        ("Total général passif (DZ)", f"={P}!D{pa['DZ']}", ""),
         ("Écart bilan actif - passif (doit être 0)", "=B5-B6", 0),
-        ("Résultat net (compte de résultat, XE)", f"='{CR_NOM}'!D{cr['XE']}", ""),
+        ("Résultat net (compte de résultat, XE)", f"={R}!D{cr['XE']}", ""),
         ("Résultat net (bilan, CH = résultat CR + solde compte 13)",
-         f"=PASSIF!D{pa['CH']}", ""),
+         f"={P}!D{pa['CH']}", ""),
         ("Écart résultat CR / bilan (doit être 0 si balance avant affectation)",
          "=B8-B9", 0),
     ]
     if avec_n1 and refs.get("TFT"):
         tft = refs["TFT"]
         lignes += [
-            ("Trésorerie nette au 31/12 (TFT, ZG)", f"=TFT!C{tft['ZG']}", ""),
+            ("Trésorerie nette au 31/12 (TFT, ZG)", f"=TFT!D{tft['ZG']}", ""),
             ("Trésorerie nette au 31/12 (bilan, BX - DX)",
-             f"=ACTIF!F{ac['BX']}-PASSIF!D{pa['DX']}", ""),
+             f"={A}!F{ac['BX']}-{P}!D{pa['DX']}", ""),
             ("Écart trésorerie TFT / bilan (doit être 0)", "=B11-B12", 0),
         ]
-    lignes.append(("— Recoupements notes annexes / états —", "", ""))
+    lignes.append(("- Recoupements notes annexes / états -", "", ""))
     lignes += controles_notes
     for lab, f, att in lignes:
         ctl.append([lab, f, att])
@@ -569,7 +579,11 @@ def main():
     ap.add_argument("--identifiant", default="")
     ap.add_argument("--exercice", default="")
     ap.add_argument("--duree", default="12")
+    ap.add_argument("--adresse", default="")
+    ap.add_argument("--sigle", default="")
+    ap.add_argument("--ntd", default="")
     args = ap.parse_args()
+    set_identite_etendue(args.adresse, args.sigle, args.ntd)
 
     rubs = charger_maquette(args.correspondance)
     bal, idx = lire_balance(args.balance_N)
@@ -591,37 +605,56 @@ def main():
     passif_rubs = [(ref, r) for ref, r in rubs.items() if r.etat == "BILAN-PASSIF"]
     cr_rubs = [(ref, r) for ref, r in rubs.items() if r.etat == "COMPTE-DE-RESULTAT"]
 
-    refs = {}
-    refs["ACTIF"] = construire_etat(wb, "ACTIF", "BILAN — ACTIF",
-                                    actif_rubs, rubs, avec_n1, ident, True)
-    refs["PASSIF"] = construire_etat(wb, "PASSIF", "BILAN — PASSIF",
-                                     passif_rubs, rubs, avec_n1, ident, False)
-    refs["CR"] = construire_etat(wb, CR_NOM, "COMPTE DE RÉSULTAT",
-                                 cr_rubs, rubs, avec_n1, ident, False)
+    refs = {"NOM_ACTIF": NOM_ACTIF, "NOM_PASSIF": NOM_PASSIF,
+            "CR_NOM": CR_NOM, "NOM_TFT": "TFT"}
+    refs["ACTIF"] = construire_etat(
+        wb, NOM_ACTIF, "BILAN", actif_rubs, rubs, avec_n1, ident, True,
+        page_ref="BILAN SYSTEME NORMAL\nPAGE 1/2", libelle_col="ACTIF")
+    refs["PASSIF"] = construire_etat(
+        wb, NOM_PASSIF, "BILAN", passif_rubs, rubs, avec_n1, ident, False,
+        page_ref="BILAN SYSTEME NORMAL\nPAGE 2/2", libelle_col="PASSIF")
+    refs["CR"] = construire_etat(
+        wb, CR_NOM, "COMPTE DE RESULTAT", cr_rubs, rubs, avec_n1, ident,
+        False, page_ref="COMPTE DE RESULTAT\nSYSTEME NORMAL",
+        libelle_col="LIBELLES")
     refs["TFT"] = construire_tft(wb, rubs, avec_n1, ident)
 
     # Résultat du bilan (CH) = résultat du compte de résultat + solde éventuel
     # du compte 13 : la liasse boucle que la balance soit avant ou après
     # affectation (même principe que le moteur SYSCOHADA).
-    P = wb["PASSIF"]
+    P = wb[NOM_PASSIF]
     row_ch, row_xe = refs["PASSIF"]["CH"], refs["CR"]["XE"]
     f13 = _c(formule_tokens(["13"], "nc", "BALANCE"))
-    P.cell(row_ch, 4).value = f"='{CR_NOM}'!D{row_xe}+({f13})"
+    P.cell(row_ch, 4).value = f"={q(CR_NOM)}!D{row_xe}+({f13})"
     if avec_n1:
         f13b = _c(formule_tokens(["13"], "nc", "BALANCE_N1"))
-        P.cell(row_ch, 5).value = f"='{CR_NOM}'!E{row_xe}+({f13b})"
+        P.cell(row_ch, 5).value = f"={q(CR_NOM)}!E{row_xe}+({f13b})"
 
     controles_notes = notes_sycebnl.construire_notes(wb, avec_n1, ident, refs)
 
     ecrire_balance(wb, "BALANCE", bal, rubs)
     if avec_n1:
         ecrire_balance(wb, "BALANCE_N1", bal1, rubs)
+    construire_controle_balance(wb, avec_n1, len(bal), len(bal1 or []))
     construire_controles(wb, bal, refs, controles_notes, avec_n1)
     construire_anomalies(wb, anomalies)
+    construire_couverture(wb, ident, "LIASSE SYSTEME NORMAL")
     construire_garde(wb, ident, avec_n1)
     construire_identification(wb, ident, "SYCEBNL",
                               "Associations et ordres professionnels - "
                               "Système normal")
+    construire_fiche2(wb, ident, "EQUIPE DE L'ENTITE A BUT NON LUCRATIF")
+    ac, pa = refs["ACTIF"], refs["PASSIF"]
+    construire_bilan_paysage(
+        wb, ident,
+        {"feuille": NOM_ACTIF, "lig_debut": min(ac.values()),
+         "lig_fin": max(ac.values()), "col_note": "C", "libelle": "ACTIF",
+         "cols": [("BRUT", "D"), ("AMORT et DEPREC.", "E"), ("NET", "F"),
+                  ("NET N-1", "G")]},
+        {"feuille": NOM_PASSIF, "lig_debut": min(pa.values()),
+         "lig_fin": max(pa.values()), "col_note": "C", "libelle": "PASSIF",
+         "cols": [("NET", "D"), ("NET N-1", "E")]},
+        titre="BILAN", page_ref="BILAN SYSTEME NORMAL\nPAGE 1/1")
     parties = notes_sycebnl.parties_depuis_specs(
         notes_sycebnl.NOTES_ASSOCIATIONS,
         [("Partie 1 : Informations générales", 1, 4),
@@ -631,12 +664,17 @@ def main():
     construire_fiche_notes(wb, parties, ident,
                            "SYCEBNL - Associations et ordres professionnels "
                            "(Partie 4, ch. 2, section 4)")
-    ordonner_feuilles(wb, ["GARDE", "IDENTIFICATION", "ACTIF", "PASSIF",
-                           CR_NOM, "TFT", "FICHE NOTES"]
+    construire_table_commentaires(wb, parties, ident)
+    ordonner_feuilles(wb, [NOM_BALANCE, NOM_BALANCE_N1, "CONTROLE BALANCE",
+                           "Couverture", "Garde", "Fiche 1", "Fiche 2",
+                           "Bilan paysage", NOM_ACTIF, NOM_PASSIF,
+                           CR_NOM, "TFT", "NOTES ANNEXES"]
                       + [spec["feuille"] for spec in
                          notes_sycebnl.NOTES_ASSOCIATIONS]
-                      + ["BALANCE", "BALANCE_N1", "CONTROLES", "ANOMALIES"])
+                      + ["TABLE COMMENTAIRE", "CONTROLES", "ANOMALIES"])
     retirer_tirets(wb)
+    appliquer_police_arial(wb)
+    numeroter_pages(wb)
 
     wb.save(args.sortie)
     print(f"États écrits : {args.sortie}")

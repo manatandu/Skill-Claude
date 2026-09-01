@@ -28,11 +28,13 @@ référencée par une ligne "x" ou par un contrôle.
 """
 
 from formules_sycebnl import (
-    formule_tokens, FMT_MONTANT,
-    F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
+    formule_tokens, FMT_MONTANT, q,
+    F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS, F_DONNEE,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     style_entetes, style_zone_donnees, style_ligne_total, largeurs, style_titre,
+    ecrire_cartouche, titre_note, fusion, C_ENTETE, B_FIN,
 )
+from openpyxl.styles import PatternFill
 
 # --------------------------------------------------------------------------
 # Jeux de colonnes
@@ -816,28 +818,41 @@ NOTES_ASSOCIATIONS = [
 # MOTEUR DE RENDU
 # ==========================================================================
 
+# Mention portée sous le numéro de note dans la réf. de page (en haut à
+# droite) : « SYSTEME NORMAL » pour les associations, ajustée par les autres
+# moteurs (projets, SMT) via set_suffixe_page.
+SUFFIXE_PAGE = "SYSTEME NORMAL"
+
+
+def set_suffixe_page(s):
+    global SUFFIXE_PAGE
+    SUFFIXE_PAGE = s
+
+
 def entete_note(ws, titre, ident, ncols, sous_titre=""):
-    entite, identifiant, exercice, duree = ident
-    fin = chr(ord("A") + max(ncols - 1, 4))
-    style_titre(ws, f"A1:{fin}1", ws.title)
-    ws.merge_cells(f"A2:{fin}2")
-    ws["A2"] = titre
-    ws["A2"].font = F_SOUS_TITRE
-    ws["A2"].alignment = AL_CENTRE
+    """Cartouche ETAFI + titre de note (« NOTE X : LIBELLE » en Arial Black
+    bleu nuit). Rend la ligne où écrire les en-têtes de colonnes."""
+    ecrire_cartouche(ws, ident, f"{ws.title}\n{SUFFIXE_PAGE}", max(ncols, 5))
+    titre_note(ws, f"{ws.title} : {titre}", max(ncols, 5), row=7)
+    r = 8
     if sous_titre:
-        ws.merge_cells(f"A3:{fin}3")
-        ws["A3"] = sous_titre
-        ws["A3"].font = F_NORMAL
-        ws["A3"].alignment = AL_CENTRE
-    ws["A4"] = f"Désignation entité : {entite}"
-    ws["A4"].font = F_GRAS
-    ws["A5"] = f"Numéro d'identification : {identifiant}"
-    col_droite = chr(ord("A") + max(ncols - 2, 2))
-    ws[f"{col_droite}4"] = f"Exercice clos le : {exercice}"
-    ws[f"{col_droite}4"].font = F_GRAS
-    ws[f"{col_droite}5"] = f"Durée (en mois) : {duree}"
-    ws.sheet_view.showGridLines = False
-    return 7
+        fusion(ws, r, 1, r, max(ncols, 5))
+        c = ws.cell(r, 1, sous_titre)
+        c.font = F_DONNEE
+        c.alignment = AL_CENTRE
+        r += 1
+    return r
+
+
+def bande_note(ws, r, ncols, texte):
+    """Bande de section de note : fond CCFFFF, gras, bordée (modèle)."""
+    ws.cell(r, 1, texte)
+    for c in range(1, ncols + 1):
+        cell = ws.cell(r, c)
+        cell.fill = PatternFill("solid", fgColor=C_ENTETE)
+        cell.font = F_SOUS_TITRE
+        cell.border = B_FIN
+    ws.cell(r, 1).alignment = AL_GAUCHE
 
 
 def _commentaires(ws, r, textes, ncols):
@@ -871,8 +886,7 @@ def _render_table(ws, spec, avec_n1, ident):
             bloc_debut = r + 1
             continue
         if kind == "h":
-            ws.cell(r, 1, ligne[1])
-            ws.cell(r, 1).font = F_SOUS_TITRE
+            bande_note(ws, r, len(entetes), ligne[1])
             bloc_debut = r + 1
             continue
         if kind == "man":
@@ -944,8 +958,7 @@ def _render_mouvements(ws, spec, avec_n1, ident, mode_defaut, col_titres):
     for ligne in spec["lignes"]:
         r += 1
         if ligne[0] == "h":
-            ws.cell(r, 1, ligne[1])
-            ws.cell(r, 1).font = F_SOUS_TITRE
+            bande_note(ws, r, 5, ligne[1])
             continue
         _, label, expr, mode = ligne[:4]
         ws.cell(r, 1, label)
@@ -1075,8 +1088,7 @@ def _render_texte(ws, spec, ident):
 
 def _render_special1(ws, spec, avec_n1, ident):
     r = entete_note(ws, spec["titre"], ident, 6)
-    ws.cell(r, 1, "DETTES GARANTIES PAR DES SÛRETÉS RÉELLES")
-    ws.cell(r, 1).font = F_SOUS_TITRE
+    bande_note(ws, r, 6, "DETTES GARANTIES PAR DES SÛRETÉS RÉELLES")
     r += 1
     for i, h in enumerate(["Libellés", "Note", "Montant brut",
                            "Hypothèques", "Nantissements", "Gages / autres"],
@@ -1271,9 +1283,13 @@ def _render_synthese(ws, spec, avec_n1, ident, refs):
                            "Variation en %"], start=1):
         ws.cell(r, i, h)
     style_entetes(ws, r, 1, 5)
-    CRn, CRn1 = "'Compte de Resultat'!D", "'Compte de Resultat'!E"
-    A_n, A_n1 = "ACTIF!F", "ACTIF!G"
-    P_n, P_n1 = "PASSIF!D", "PASSIF!E"
+    na = q(refs.get("NOM_ACTIF", "ACTIF"))
+    npf = q(refs.get("NOM_PASSIF", "PASSIF"))
+    ncr = q(refs.get("CR_NOM", "Compte de Resultat"))
+    ntf = q(refs.get("NOM_TFT", "TFT"))
+    CRn, CRn1 = f"{ncr}!D", f"{ncr}!E"
+    A_n, A_n1 = f"{na}!F", f"{na}!G"
+    P_n, P_n1 = f"{npf}!D", f"{npf}!E"
     cr, ac, pa, tft = refs["CR"], refs["ACTIF"], refs["PASSIF"], refs.get("TFT", {})
 
     def s(expr, mode, feuille="BALANCE"):
@@ -1338,14 +1354,14 @@ def _render_synthese(ws, spec, avec_n1, ident, refs):
         lignes += [
             ("h", "ANALYSE DE LA VARIATION DE LA TRÉSORERIE"),
             ("v", "Flux de trésorerie des activités opérationnelles",
-             paire(f"=TFT!C{tft['ZB']}", f"=TFT!D{tft['ZB']}")),
+             paire(f"={ntf}!D{tft['ZB']}", f"={ntf}!E{tft['ZB']}")),
             ("v", "Flux de trésorerie des activités d'investissement",
-             paire(f"=TFT!C{tft['ZC']}", f"=TFT!D{tft['ZC']}")),
+             paire(f"={ntf}!D{tft['ZC']}", f"={ntf}!E{tft['ZC']}")),
             ("v", "Flux de trésorerie des activités de financement",
-             paire(f"=TFT!C{tft['ZD']}+TFT!C{tft['ZE']}",
-                   f"=TFT!D{tft['ZD']}+TFT!D{tft['ZE']}")),
+             paire(f"={ntf}!D{tft['ZD']}+{ntf}!D{tft['ZE']}",
+                   f"={ntf}!E{tft['ZD']}+{ntf}!E{tft['ZE']}")),
             ("v", "VARIATION DE LA TRÉSORERIE NETTE DE LA PÉRIODE",
-             paire(f"=TFT!C{tft['ZF']}", f"=TFT!D{tft['ZF']}")),
+             paire(f"={ntf}!D{tft['ZF']}", f"={ntf}!E{tft['ZF']}")),
         ]
 
     marqueurs = {}
@@ -1354,8 +1370,7 @@ def _render_synthese(ws, spec, avec_n1, ident, refs):
         r += 1
         kind = ligne[0]
         if kind == "h":
-            ws.cell(r, 1, ligne[1])
-            ws.cell(r, 1).font = F_SOUS_TITRE
+            bande_note(ws, r, 5, ligne[1])
             pile_vx = []
             continue
         if kind == "man":
@@ -1475,14 +1490,17 @@ def construire_notes(wb, avec_n1, ident, refs, notes=None):
             row_note = ids[ctl[2] if len(ctl) > 2 else "net"]
             cols = COLS[spec.get("cols", "std5")]
             cell_note = f"'{spec['feuille']}'!{cols['n']}{row_note}"
+            na = q(refs.get("NOM_ACTIF", "ACTIF"))
+            npf = q(refs.get("NOM_PASSIF", "PASSIF"))
+            ncr = q(refs.get("CR_NOM", "Compte de Resultat"))
             if etat == "ACTIF-net":
-                cible = f"ACTIF!F{refs['ACTIF'][ref]}"
+                cible = f"{na}!F{refs['ACTIF'][ref]}"
             elif etat == "ACTIF-D":
-                cible = f"ACTIF!D{refs['ACTIF'][ref]}"
+                cible = f"{na}!D{refs['ACTIF'][ref]}"
             elif etat == "PASSIF":
-                cible = f"PASSIF!D{refs['PASSIF'][ref]}"
+                cible = f"{npf}!D{refs['PASSIF'][ref]}"
             else:
-                cible = f"'{refs.get('CR_NOM', 'Compte de Resultat')}'!D{refs['CR'][ref]}"
+                cible = f"{ncr}!D{refs['CR'][ref]}"
             if etat == "CR":
                 # au CR les charges sont stockées signées (négatives)
                 controles.append((f"{spec['feuille']} total vs poste {ref}",
@@ -1506,8 +1524,7 @@ def _render_bailleur(ws, spec, ident):
     for bloc, note in (("FONDS D'INVESTISSEMENT", ""),
                        ("FONDS D'ADMINISTRATION (2)", "")):
         r += 1
-        ws.cell(r, 1, bloc)
-        ws.cell(r, 1).font = F_SOUS_TITRE
+        bande_note(ws, r, 7, bloc)
         d0 = r + 1
         for _ in range(4):
             r += 1

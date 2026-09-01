@@ -65,9 +65,15 @@ annexes, page de garde, feuilles d'audit BALANCE/CONTROLES/ANOMALIES) :
   construit, notes 1 à 4 + journaux de suivi.
 
 Tous les montants sont écrits en **formules Excel** (`SUMIF` sur la feuille
-BALANCE injectée) : chaque chiffre de la liasse est retraçable jusqu'aux
+BALANCE N injectée) : chaque chiffre de la liasse est retraçable jusqu'aux
 comptes de la balance. Les anomalies de balance sont détectées et signalées
-plutôt que corrigées en silence. Détail dans `liasse/README.md`.
+plutôt que corrigées en silence.
+
+Présentation : **charte ETAFI** (reprise d'une liasse fiscale réelle) —
+cartouche d'identification en tête de chaque page, en-têtes CCFFFF, totaux
+de section verts, TOTAL GENERAL bleu nuit, format comptable (zéro affiché
+« - »), et pages Couverture / Garde / CONTROLE BALANCE / Bilan paysage /
+TABLE COMMENTAIRE dans l'ordre du modèle. Détail dans `liasse/README.md`.
 
 ## Frontière commune
 

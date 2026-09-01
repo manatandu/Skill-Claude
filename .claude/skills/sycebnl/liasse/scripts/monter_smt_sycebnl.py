@@ -34,16 +34,35 @@ import openpyxl
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from formules_sycebnl import (
-    formule_tokens, set_lignes_max,
+    formule_tokens, set_lignes_max, q, nom_feuille,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
     largeurs, style_titre, retirer_tirets, construire_identification,
     construire_fiche_notes, ordonner_feuilles,
+    ecrire_cartouche, titre_etat, titre_note, entetes_bande, style_ligne,
+    cadre, MOYEN, set_identite_etendue, construire_couverture,
+    construire_garde_etafi, construire_fiche2, construire_controle_balance,
+    construire_table_commentaires, construire_bilan_paysage,
+    appliquer_police_arial, numeroter_pages, NOM_BALANCE, NOM_BALANCE_N1,
 )
-from monter_etats_sycebnl import lire_balance, entete_etat
+from monter_etats_sycebnl import lire_balance
 
-CR_NOM = "COMPTE DE RESULTAT"
+NOM_ACTIF = "Bilan-Actif"
+NOM_PASSIF = "Bilan-Passif"
+CR_NOM = "Résultat"
+PAGE_SYS = "SYCEBNL - SMT"
+
+
+def entete_smt(ws, titre, page_ref, ident, ncols, note=False, taille=14):
+    """Cartouche ETAFI + titre (vert pour un état, bleu nuit pour une
+    note) : rend la ligne des en-têtes de colonnes."""
+    ecrire_cartouche(ws, ident, page_ref, max(ncols, 5))
+    if note:
+        titre_note(ws, titre, max(ncols, 5), row=7)
+    else:
+        titre_etat(ws, titre, 1, max(ncols, 5), row=7, taille=taille)
+    return 8
 
 
 def _c(f):
@@ -79,7 +98,7 @@ def f_passif(ref, bal, kzc_row):
     if ref == "HB":
         f13 = _c(formule_tokens(_tok("13"), "nc", bal))
         col = "D" if bal == "BALANCE" else "E"
-        return f"='{CR_NOM}'!{col}{kzc_row}+({f13})"
+        return f"={q(CR_NOM)}!{col}{kzc_row}+({f13})"
     if ref == "HC":
         return formule_tokens(_tok("11,12,14,15,16,17,18,19"), "nc", bal)
     if ref == "HD":
@@ -115,16 +134,20 @@ CR_LIGNES = [
 ]
 
 
+NIVEAUX_CR_SMT = {"KX": "section", "JX": "section", "KZ": "inter",
+                  "KZC": "section"}
+
+
 def construire_cr(wb, avec_n1, ident):
     ws = wb.create_sheet(CR_NOM)
-    entete_etat(ws, "COMPTE DE RÉSULTAT — SMT",
-                "SYCEBNL, Système minimal de trésorerie (Partie 4, ch. 4)",
-                ident, 5)
-    r = 7
-    for i, h in enumerate(["REF", "LIBELLÉS", "Note", "Exercice N",
-                           "Exercice N-1"], start=1):
+    r = entete_smt(ws, "COMPTE DE RESULTAT", f"COMPTE DE RESULTAT\n{PAGE_SYS}",
+                   ident, 5)
+    for i, h in enumerate(["REF", "LIBELLES", "NOTE", "EXERCICE N",
+                           "EXERCICE N-1"], start=1):
         ws.cell(r, i, h)
-    style_entetes(ws, r, 1, 5)
+    entetes_bande(ws, r, r, 1, 5)
+    ws.row_dimensions[r].height = 22
+    debut = r + 1
     rows = {}
     for ref, lib, jetons, mode, note, total in CR_LIGNES:
         r += 1
@@ -139,8 +162,9 @@ def construire_cr(wb, avec_n1, ident):
                 if actif:
                     ws.cell(r, col).value = formule_tokens(
                         _tok(inc), mode, bal, exclude=_tok(exc))
-        if total:
-            style_ligne_total(ws, r, 1, 5, cols_montant=(4, 5))
+        style_ligne(ws, r, 1, 5, NIVEAUX_CR_SMT.get(ref, "normal"),
+                    cols_montant=(4, 5), col_ref=1)
+        ws.row_dimensions[r].height = 22
 
     def pose(ref, fN, fN1):
         ws.cell(rows[ref], 4).value = fN
@@ -165,15 +189,14 @@ def construire_cr(wb, avec_n1, ident):
     pose("KZC",
          f"=D{rows['KZ']}+D{rows['VA']}+D{rows['VB']}-D{rows['VC']}-D{rows['JG']}",
          f"=E{rows['KZ']}+E{rows['VA']}+E{rows['VB']}-E{rows['VC']}-E{rows['JG']}")
-    style_zone_donnees(ws, 8, r, 1, 5, cols_montant=(4, 5))
-    for ref in ("KX", "JX", "KZ", "KZC"):
-        style_ligne_total(ws, rows[ref], 1, 5, cols_montant=(4, 5))
+    cadre(ws, debut - 1, 1, r, 5, MOYEN)
     r += 2
     ws.cell(r, 1, "Les variations de créances (VB) et de dettes (VC) se "
                   "saisissent depuis l'état extra-comptable de la Note 3 ; si "
                   "la balance porte une classe 4 mouvementée (base "
                   "engagement), les laisser à zéro.")
-    largeurs(ws, {"A": 7, "B": 62, "C": 7, "D": 17, "E": 17})
+    ws.cell(r, 1).font = F_NORMAL
+    largeurs(ws, {"A": 6, "B": 60, "C": 6.5, "D": 15.7, "E": 15.7})
     return rows
 
 
@@ -187,21 +210,22 @@ def construire_bilan(wb, avec_n1, ident, kzc_row):
                 ("HB", "Résultat net de l'exercice (en + ou en -)", ""),
                 ("HC", "Autres fonds propres", ""),
                 ("HD", "Fournisseurs et autres créditeurs", "3")]
-    for nom, lignes, total_ref, total_lab, f_poste in (
-            ("BILAN ACTIF", lignes_a, "GZ", "Total actif", f_actif),
-            ("BILAN PASSIF", lignes_p, "HZ", "Total passif",
-             lambda ref, bal: f_passif(ref, bal, kzc_row))):
+    infos = {}
+    for nom, lignes, total_ref, total_lab, f_poste, page in (
+            (NOM_ACTIF, lignes_a, "GZ", "TOTAL ACTIF", f_actif, "PAGE 1/2"),
+            (NOM_PASSIF, lignes_p, "HZ", "TOTAL PASSIF",
+             lambda ref, bal: f_passif(ref, bal, kzc_row), "PAGE 2/2")):
         ws = wb.create_sheet(nom)
-        entete_etat(ws, f"BILAN SMT — {'ACTIF' if 'ACTIF' in nom else 'PASSIF'}",
-                    "SYCEBNL, Système minimal de trésorerie (Partie 4, ch. 4)",
-                    ident, 5)
-        r = 7
+        cote = "ACTIF" if nom == NOM_ACTIF else "PASSIF"
+        r = entete_smt(ws, "BILAN", f"BILAN {PAGE_SYS}\n{page}", ident, 5,
+                       taille=16)
         ws.cell(r, 1, "REF")
-        ws.cell(r, 2, nom.split()[1])
-        ws.cell(r, 3, "Note")
-        ws.cell(r, 4, "Exercice N")
-        ws.cell(r, 5, "Exercice N-1")
-        style_entetes(ws, r, 1, 5)
+        ws.cell(r, 2, cote)
+        ws.cell(r, 3, "NOTE")
+        ws.cell(r, 4, "EXERCICE N")
+        ws.cell(r, 5, "EXERCICE N-1")
+        entetes_bande(ws, r, r, 1, 5)
+        ws.row_dimensions[r].height = 22
         premiere = r + 1
         for ref, lib, note in lignes:
             r += 1
@@ -211,29 +235,36 @@ def construire_bilan(wb, avec_n1, ident, kzc_row):
             ws.cell(r, 4).value = f_poste(ref, "BALANCE")
             if avec_n1:
                 ws.cell(r, 5).value = f_poste(ref, "BALANCE_N1")
+            style_ligne(ws, r, 1, 5, "normal", cols_montant=(4, 5), col_ref=1)
+            ws.row_dimensions[r].height = 22
         r += 1
         ws.cell(r, 1, total_ref)
         ws.cell(r, 2, total_lab)
         ws.cell(r, 4).value = f"=SUM(D{premiere}:D{r-1})"
         if avec_n1:
             ws.cell(r, 5).value = f"=SUM(E{premiere}:E{r-1})"
-        style_zone_donnees(ws, premiere, r - 1, 1, 5, cols_montant=(4, 5))
-        style_ligne_total(ws, r, 1, 5, cols_montant=(4, 5))
+        style_ligne(ws, r, 1, 5, "general", cols_montant=(4, 5), col_ref=1)
+        ws.row_dimensions[r].height = 22
+        cadre(ws, premiere - 1, 1, r, 5, MOYEN)
+        infos[total_ref] = r
+        infos[nom] = (premiere, r)
         r += 2
         ws.cell(r, 1, "(1) à faire figurer sur l'état de situation si "
                       "montants significatifs (Partie 4, ch. 4)."
-                if "ACTIF" in nom else
+                if cote == "ACTIF" else
                 "Autres fonds propres : réserves, report à nouveau, "
                 "subventions, fonds affectés/reportés, emprunts et "
                 "provisions (le modèle SMT ne les distingue pas).")
-        largeurs(ws, {"A": 8, "B": 52, "C": 8, "D": 18, "E": 18})
+        ws.cell(r, 1).font = F_NORMAL
+        largeurs(ws, {"A": 6, "B": 52, "C": 6.5, "D": 15.7, "E": 15.7})
+    return infos
 
 
 def construire_note1(wb, bal, ident):
     ws = wb.create_sheet("NOTE 1 IMMOBILISATIONS")
-    entete_etat(ws, "NOTE 1 — TABLEAU D'ACQUISITION ET DE SUIVI DU MATÉRIEL, "
-                    "DU MOBILIER ET AUTRES IMMOBILISATIONS", "", ident, 7)
-    r = 7
+    r = entete_smt(ws, "NOTE 1 : TABLEAU D'ACQUISITION ET DE SUIVI DU "
+                       "MATERIEL, DU MOBILIER ET AUTRES IMMOBILISATIONS",
+                   f"NOTE 1\n{PAGE_SYS}", ident, 7, note=True)
     for i, h in enumerate(["Date", "Désignation", "Montant",
                            "Date d'acquisition", "Durée d'utilité",
                            "Date de sortie", "Prix de cession"], start=1):
@@ -263,8 +294,8 @@ def construire_note1(wb, bal, ident):
 
 def construire_note2(wb, bal, avec_n1, ident):
     ws = wb.create_sheet("NOTE 2 STOCKS")
-    entete_etat(ws, "NOTE 2 — ÉTAT DES STOCKS", "", ident, 5)
-    r = 7
+    r = entete_smt(ws, "NOTE 2 : ETAT DES STOCKS",
+                   f"NOTE 2\n{PAGE_SYS}", ident, 5, note=True)
     for i, h in enumerate(["Référence", "Désignation", "Quantité",
                            "Prix unitaire", "Montant"], start=1):
         ws.cell(r, i, h)
@@ -292,9 +323,8 @@ def construire_note2(wb, bal, avec_n1, ident):
 
 def construire_note3(wb, avec_n1, ident):
     ws = wb.create_sheet("NOTE 3 CREANCES-DETTES")
-    entete_etat(ws, "NOTE 3 — ÉTAT DES CRÉANCES ET DES DETTES NON ÉCHUES",
-                "Inventaire extra-comptable au 31 décembre", ident, 6)
-    r = 7
+    r = entete_smt(ws, "NOTE 3 : ETAT DES CREANCES ET DES DETTES NON ECHUES",
+                   f"NOTE 3\n{PAGE_SYS}", ident, 6, note=True)
     for bloc, mode in (("CRÉANCES — nom des clients-usagers et autres débiteurs", "d"),
                        ("DETTES — nom des fournisseurs et autres créditeurs", "c")):
         ws.cell(r, 1, bloc)
@@ -335,10 +365,8 @@ def construire_note3(wb, avec_n1, ident):
 
 def construire_note4(wb, ident):
     ws = wb.create_sheet("NOTE 4 JOURNAL TRESORERIE")
-    entete_etat(ws, "NOTE 4 — JOURNAL UNIQUE DE TRÉSORERIE",
-                "Un journal par banque et un pour la caisse ; regroupement "
-                "mensuel possible (Partie 4, ch. 4)", ident, 11)
-    r = 7
+    r = entete_smt(ws, "NOTE 4 : JOURNAL UNIQUE DE TRESORERIE",
+                   f"NOTE 4\n{PAGE_SYS}", ident, 11, note=True)
     entetes = ["Dates", "Libellés", "Recettes", "Dépenses", "Solde",
                "Vent. recettes : Cotisations", "Subventions", "Autres",
                "Vent. dépenses : Achats de biens liés à l'activité",
@@ -355,7 +383,7 @@ def construire_note4(wb, ident):
     r += 1
     ws.cell(r, 2, "Solde à reporter")
     ws.cell(r, 5).value = f"=E{r-1}"
-    style_zone_donnees(ws, 8, r, 1, 11,
+    style_zone_donnees(ws, 9, r, 1, 11,
                        cols_montant=(3, 4, 5, 6, 7, 8, 9, 10, 11))
     style_ligne_total(ws, r, 1, 11, cols_montant=(5,))
     largeurs(ws, {"A": 11, "B": 32, "C": 13, "D": 13, "E": 13, "F": 14,
@@ -364,10 +392,8 @@ def construire_note4(wb, ident):
 
 def construire_note5(wb, ident):
     ws = wb.create_sheet("NOTE 5 DOTATIONS")
-    entete_etat(ws, "NOTE 5 — DOTATION",
-                "Nom et prénoms des membres | Nationalité | Montant | Avec ou "
-                "sans droit d'entrée", ident, 4)
-    r = 7
+    r = entete_smt(ws, "NOTE 5 : DOTATION",
+                   f"NOTE 5\n{PAGE_SYS}", ident, 4, note=True)
     for i, h in enumerate(["Nom et prénoms des membres", "Nationalité",
                            "Montant", "Avec / sans droit d'entrée"], start=1):
         ws.cell(r, i, h)
@@ -389,12 +415,12 @@ def construire_note5(wb, ident):
     ws.cell(r, 1, "TOTAL")
     ws.cell(r, 3).value = "=" + "+".join(f"C{d}" for d in data)
     style_ligne_total(ws, r, 1, 4, cols_montant=(3,))
-    style_zone_donnees(ws, 8, r - 1, 1, 4, cols_montant=(3,))
+    style_zone_donnees(ws, 9, r - 1, 1, 4, cols_montant=(3,))
     largeurs(ws, {"A": 44, "B": 16, "C": 16, "D": 24})
 
 
 def ecrire_balance_smt(wb, nom, bal):
-    b = wb.create_sheet(nom)
+    b = wb.create_sheet(nom_feuille(nom))
     entetes = ["Compte", "Intitulé", "Préfixe 2", "Préfixe 3", "Préfixe 4",
                "Solde final débit", "Solde final crédit"]
     b.append(entetes)
@@ -452,7 +478,11 @@ def main():
     ap.add_argument("--identifiant", default="")
     ap.add_argument("--exercice", default="")
     ap.add_argument("--duree", default="12")
+    ap.add_argument("--adresse", default="")
+    ap.add_argument("--sigle", default="")
+    ap.add_argument("--ntd", default="")
     args = ap.parse_args()
+    set_identite_etendue(args.adresse, args.sigle, args.ntd)
 
     bal, idx = lire_balance(args.balance_N)
     print(f"Balance N : {len(bal)} comptes. Colonnes repérées : {idx}")
@@ -468,9 +498,7 @@ def main():
     wb.remove(wb.active)
 
     cr_rows = construire_cr(wb, avec_n1, ident)
-    construire_bilan(wb, avec_n1, ident, cr_rows["KZC"])
-    ordre = ["BILAN ACTIF", "BILAN PASSIF", CR_NOM]
-    wb._sheets.sort(key=lambda w: ordre.index(w.title) if w.title in ordre else 99)
+    infos_bilan = construire_bilan(wb, avec_n1, ident, cr_rows["KZC"])
 
     construire_note1(wb, bal, ident)
     construire_note2(wb, bal, avec_n1, ident)
@@ -483,18 +511,19 @@ def main():
         ecrire_balance_smt(wb, "BALANCE_N1", bal1)
 
     ctl = wb.create_sheet("CONTROLES")
-    n = len(bal)
+    n = max(len(bal), 1)
     ctl.append(["Contrôle", "Valeur", "Attendu"])
     style_entetes(ctl, 1, 1, 3)
+    B = q(NOM_BALANCE)
     for lab, f, att in [
-            ("Total solde débit balance", f"=SUM(BALANCE!F2:F{n+1})", ""),
-            ("Total solde crédit balance", f"=SUM(BALANCE!G2:G{n+1})", ""),
+            ("Total solde débit balance", f"=SUM({B}!F2:F{n+1})", ""),
+            ("Total solde crédit balance", f"=SUM({B}!G2:G{n+1})", ""),
             ("Écart balance (doit être 0)", "=B2-B3", 0),
-            ("Total actif (GZ)", "='BILAN ACTIF'!D13", ""),
-            ("Total passif (HZ)", "='BILAN PASSIF'!D12", ""),
+            ("Total actif (GZ)", f"={q(NOM_ACTIF)}!D{infos_bilan['GZ']}", ""),
+            ("Total passif (HZ)", f"={q(NOM_PASSIF)}!D{infos_bilan['HZ']}", ""),
             ("Écart actif - passif (doit être 0)", "=B5-B6", 0),
             ("Résultat net (compte de résultat, KZC)",
-             f"='{CR_NOM}'!D{cr_rows['KZC']}", "")]:
+             f"={q(CR_NOM)}!D{cr_rows['KZC']}", "")]:
         ctl.append([lab, f, att])
     style_zone_donnees(ctl, 2, ctl.max_row, 1, 3, cols_montant=(2,))
     largeurs(ctl, {"A": 56, "B": 20, "C": 10})
@@ -509,53 +538,53 @@ def main():
     style_zone_donnees(an, 2, max(an.max_row, 2), 1, 5)
     largeurs(an, {"A": 12, "B": 12, "C": 26, "D": 62, "E": 62})
 
-    g = wb.create_sheet("GARDE", 0)
-    g.sheet_view.showGridLines = False
-    style_titre(g, "B2:F3", "ÉTATS FINANCIERS ANNUELS — SYCEBNL")
-    g.merge_cells("B4:F4")
-    g["B4"] = "SYSTÈME MINIMAL DE TRÉSORERIE (Partie 4, ch. 4)"
-    g["B4"].font = F_SOUS_TITRE
-    g["B4"].alignment = AL_CENTRE
-    r = 6
-    for lab, v in [("Désignation de l'entité", args.entite or "—"),
-                   ("Numéro d'identification", args.identifiant or "—"),
-                   ("Exercice clos le", args.exercice or "—"),
-                   ("Durée de l'exercice (mois)", args.duree or "12"),
-                   ("Balance N-1 fournie", "Oui" if avec_n1 else "Non")]:
-        g[f"B{r}"] = lab
-        g[f"B{r}"].font = F_GRAS
-        g[f"D{r}"] = v
-        r += 1
-    r += 1
-    for s in ["Fiche d'identification et fiche récapitulative des notes",
-              "Bilan (GA→GZ / HA→HZ), une feuille par volet",
-              "Compte de résultat (KA→KZC)",
-              "Notes annexes 1 à 5",
-              "Feuilles d'audit : BALANCE, BALANCE_N1, CONTROLES, ANOMALIES"]:
-        g[f"B{r}"] = "• " + s
-        r += 1
-    largeurs(g, {"A": 3, "B": 38, "C": 12, "D": 26, "E": 14, "F": 14})
-
+    construire_controle_balance(wb, avec_n1, len(bal), len(bal1 or []))
+    construire_couverture(wb, ident, "LIASSE SMT")
+    construire_garde_etafi(
+        wb, ident,
+        bandeau="ETATS FINANCIERS NORMALISES\nDU SYSTEME COMPTABLE DES "
+                "ENTITES A BUT NON LUCRATIF (SYCEBNL)",
+        sous_bandeau="Associations, Ordres Professionnels, Fondations "
+                     "et Assimilées",
+        systeme="SYSTEME MINIMAL DE TRESORERIE",
+        documents=["Fiche d'identification et renseignements divers",
+                   "Bilan (actif et passif)",
+                   "Compte de résultat",
+                   "Notes annexes 1 à 5"])
+    construire_fiche2(wb, ident, "EQUIPE DE L'ENTITE A BUT NON LUCRATIF")
+    pa_a, pa_p = infos_bilan[NOM_ACTIF], infos_bilan[NOM_PASSIF]
+    construire_bilan_paysage(
+        wb, ident,
+        {"feuille": NOM_ACTIF, "lig_debut": pa_a[0], "lig_fin": pa_a[1],
+         "col_note": "C", "libelle": "ACTIF",
+         "cols": [("EXERCICE N", "D"), ("EXERCICE N-1", "E")]},
+        {"feuille": NOM_PASSIF, "lig_debut": pa_p[0], "lig_fin": pa_p[1],
+         "col_note": "C", "libelle": "PASSIF",
+         "cols": [("EXERCICE N", "D"), ("EXERCICE N-1", "E")]},
+        titre="BILAN", page_ref=f"BILAN {PAGE_SYS}\nPAGE 1/1")
     construire_identification(wb, ident, "SYCEBNL",
                               "Système minimal de trésorerie")
-    construire_fiche_notes(
-        wb,
-        [("Partie 1 : Notes sur le bilan",
-          [("Note 1", "Tableau d'acquisition et de suivi du matériel, du "
-                      "mobilier et des cautions"),
-           ("Note 2", "État des stocks"),
-           ("Note 3", "État des créances et des dettes non échues"),
-           ("Note 5", "Dotations")]),
-         ("Partie 2 : Notes sur le compte de résultat",
-          [("Note 4", "Journal unique de trésorerie")])],
-        ident, "SYCEBNL - Système minimal de trésorerie (Partie 4, ch. 4)")
-    ordonner_feuilles(wb, ["GARDE", "IDENTIFICATION", "BILAN ACTIF",
-                           "BILAN PASSIF", CR_NOM, "FICHE NOTES",
+    parties = [("Partie 1 : Notes sur le bilan",
+                [("Note 1", "Tableau d'acquisition et de suivi du matériel, "
+                            "du mobilier et des cautions"),
+                 ("Note 2", "État des stocks"),
+                 ("Note 3", "État des créances et des dettes non échues"),
+                 ("Note 5", "Dotations")]),
+               ("Partie 2 : Notes sur le compte de résultat",
+                [("Note 4", "Journal unique de trésorerie")])]
+    construire_fiche_notes(wb, parties, ident)
+    construire_table_commentaires(wb, parties, ident)
+    ordonner_feuilles(wb, [NOM_BALANCE, NOM_BALANCE_N1, "CONTROLE BALANCE",
+                           "Couverture", "Garde", "Fiche 1", "Fiche 2",
+                           "Bilan paysage", NOM_ACTIF, NOM_PASSIF, CR_NOM,
+                           "NOTES ANNEXES",
                            "NOTE 1 IMMOBILISATIONS", "NOTE 2 STOCKS",
                            "NOTE 3 CREANCES-DETTES",
                            "NOTE 4 JOURNAL TRESORERIE", "NOTE 5 DOTATIONS",
-                           "BALANCE", "BALANCE_N1", "CONTROLES", "ANOMALIES"])
+                           "TABLE COMMENTAIRE", "CONTROLES", "ANOMALIES"])
     retirer_tirets(wb)
+    appliquer_police_arial(wb)
+    numeroter_pages(wb)
     wb.save(args.sortie)
     print(f"États SMT SYCEBNL écrits : {args.sortie}")
     bloquants = [a for a in anomalies if a["gravite"] in ("BLOQUANT", "A_TRAITER")]

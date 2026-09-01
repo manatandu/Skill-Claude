@@ -40,12 +40,125 @@ from lib_mapping import (
     charger_maquette, normaliser_compte, compte_dans_expr, token_match, Expr,
 )
 from formules import (
-    formule_tokens, formule_expr, retirer_tirets,
+    formule_tokens, formule_expr, retirer_tirets, q, nom_feuille,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, largeurs,
+    C_ENTETE, C_RUBRIQUE, C_SECTION, C_NAVY, set_identite_etendue,
+    construire_couverture, construire_garde_etafi,
+    construire_controle_balance, construire_table_commentaires,
+    construire_bilan_paysage, ordonner_feuilles, appliquer_police_arial,
+    numeroter_pages, NOM_BALANCE, NOM_BALANCE_N1,
 )
+from openpyxl.styles import Font, PatternFill
 import notes_sn
+
+
+# --------------------------------------------------------------------------
+# Re-skin du gabarit officiel aux couleurs de la charte ETAFI
+# --------------------------------------------------------------------------
+# Palette d'origine du gabarit -> palette du modèle :
+#   666699 (bandeaux d'en-têtes)        -> CCFFFF
+#   C0C0C0 (rubriques des états,        -> FFFFCC sur états et fiches,
+#           totaux gris des notes)         conservé tel quel sur les notes
+#   003366 (totaux de section)          -> 008000 (vert, texte blanc)
+#   90713A (TOTAL GENERAL, résultat)    -> 000080 (bleu nuit, texte blanc)
+#   FCF305 (zones d'identité jaunes)    -> sans fond
+#   4EE257 / 63AAFE / 99CCFF / 00ABEA   -> vert de section / CCFFFF
+#   police cyan 00ABEA des titres       -> Arial Black vert 008000
+
+_RESKIN = {"666699": C_ENTETE, "003366": C_SECTION, "90713A": C_NAVY,
+           "FCF305": None, "99CCFF": C_ENTETE, "63AAFE": C_ENTETE,
+           "00ABEA": C_ENTETE, "4EE257": C_SECTION, "A2BD90": None}
+_SOMBRES = {C_SECTION, C_NAVY}
+
+
+def reskin_etafi(wb, feuilles):
+    for nom in feuilles:
+        ws = wb[nom]
+        est_note = ws.title.upper().startswith(("NOTE", "CODES"))
+        for row in ws.iter_rows():
+            for c in row:
+                fill = c.fill
+                nouveau = "conserve"
+                if fill is not None and fill.fill_type == "solid":
+                    rgb = fill.fgColor.rgb
+                    if isinstance(rgb, str):
+                        cle = rgb[-6:].upper()
+                        if cle == "C0C0C0":
+                            nouveau = "C0C0C0" if est_note else C_RUBRIQUE
+                        elif cle in _RESKIN:
+                            nouveau = _RESKIN[cle]
+                f = c.font
+                col = ""
+                if f is not None and f.color is not None                         and isinstance(f.color.rgb, str):
+                    col = f.color.rgb.upper()
+                if nouveau != "conserve":
+                    c.fill = (PatternFill("solid", fgColor=nouveau)
+                              if nouveau else PatternFill())
+                    if f is not None:
+                        if nouveau in _SOMBRES and col != "FFFFFFFF":
+                            c.font = Font(name=f.name, size=f.size,
+                                          bold=f.bold, italic=f.italic,
+                                          color="FFFFFF")
+                        elif nouveau not in _SOMBRES and col == "FFFFFFFF":
+                            c.font = Font(name=f.name, size=f.size,
+                                          bold=f.bold, italic=f.italic,
+                                          color="000000")
+                elif col.endswith("00ABEA") and c.value:
+                    c.font = Font(name="Arial Black",
+                                  size=max(float(f.size or 10), 12),
+                                  bold=True, color=C_SECTION)
+                if c.number_format and "_€" in c.number_format:
+                    c.number_format = FMT_MONTANT
+
+
+# Lignes clefs du TFT officiel (lignes fixes du gabarit) : niveaux ETAFI.
+_TFT_NIVEAUX_SN = {11: "003366", 20: "008000", 27: "008000", 33: "C0C0C0",
+                   38: "C0C0C0", 39: "003366", 40: "003366", 41: "003366"}
+
+
+def reskin_tft_sn(wb):
+    ws = wb["TFT"]
+    for r, teinte in _TFT_NIVEAUX_SN.items():
+        sombre = teinte != "C0C0C0"
+        for c in range(1, 9):
+            cell = ws.cell(r, c)
+            cell.fill = PatternFill("solid", fgColor=teinte)
+            f = cell.font
+            cell.font = Font(name=f.name or "Arial", size=f.size or 9,
+                             bold=True, italic=f.italic,
+                             color="FFFFFF" if sombre else "000000")
+
+
+def parties_depuis_fiche_r4(wb):
+    """Intitulés officiels des notes (FICHE R4) groupés en parties, pour la
+    TABLE COMMENTAIRE."""
+    ws = wb["FICHE R4"]
+    notes = []
+    for row in ws.iter_rows(min_row=5):
+        a = str(row[0].value or "").strip()
+        b = str(row[1].value or "").strip() if len(row) > 1 else ""
+        if a.upper().startswith("NOTE ") and len(a.split()) >= 2 and b:
+            notes.append((a, b.replace("\xa0", " ")))
+    def num(ref):
+        chiffres = "".join(ch for ch in ref.split()[1] if ch.isdigit())
+        return int(chiffres or 0)
+    parties = [("Partie 1 : Informations générales", []),
+               ("Partie 2 : Notes sur le bilan", []),
+               ("Partie 3 : Notes sur le compte de résultat", []),
+               ("Partie 4 : Autres informations", [])]
+    for ref, titre in notes:
+        n = num(ref)
+        if n <= 2:
+            parties[0][1].append((ref, titre))
+        elif n <= 20:
+            parties[1][1].append((ref, titre))
+        elif n <= 33:
+            parties[2][1].append((ref, titre))
+        else:
+            parties[3][1].append((ref, titre))
+    return [p for p in parties if p[1]]
 
 
 # --------------------------------------------------------------------------
@@ -595,6 +708,7 @@ def _affectations(l, rubs):
 
 
 def ecrire_balance(wb, nom, bal, rubs):
+    nom = nom_feuille(nom)
     if nom in wb.sheetnames:
         del wb[nom]
     b = wb.create_sheet(nom)
@@ -617,68 +731,32 @@ def ecrire_balance(wb, nom, bal, rubs):
 
 
 def ecrire_garde(wb, entite, identifiant, exercice, duree, avec_n1, avec_mvt):
-    if "GARDE" in wb.sheetnames:
-        del wb["GARDE"]
-    g = wb.create_sheet("GARDE", 0)
-    g.sheet_view.showGridLines = False
-    g.merge_cells("B2:F3")
-    g["B2"] = "LIASSE FISCALE OHADA — SYSCOHADA RÉVISÉ"
-    g["B2"].font = F_TITRE
-    g["B2"].fill = R_TITRE
-    g["B2"].alignment = AL_CENTRE
-    g.merge_cells("B4:F4")
-    g["B4"] = "Système normal — États financiers annuels et notes annexes"
-    g["B4"].font = F_SOUS_TITRE
-    g["B4"].alignment = AL_CENTRE
-    lignes = [
-        ("Désignation de l'entité", entite or "—"),
-        ("Numéro d'identification", identifiant or "—"),
-        ("Exercice clos le", exercice or "—"),
-        ("Durée de l'exercice (mois)", duree or "12"),
-        ("Balance N-1 fournie", "Oui" if avec_n1 else "Non"),
-        ("Colonnes de mouvement fournies", "Oui" if avec_mvt else "Non"),
-    ]
-    r = 6
-    for lab, v in lignes:
-        g[f"B{r}"] = lab
-        g[f"B{r}"].font = F_GRAS
-        g[f"D{r}"] = v
-        r += 1
-    r += 1
-    g[f"B{r}"] = "Composition de la liasse"
-    g[f"B{r}"].font = F_SOUS_TITRE
-    r += 1
-    sommaire = [
-        "Fiches R1 à R4 — identification (à compléter)",
-        "Bilan — Actif (feuille ACTIF) et Passif (feuille PASSIF)",
-        "Compte de résultat",
-        "Tableau des flux de trésorerie (TFT)",
-        "Notes annexes 1 à 36 (une note par feuille)",
-        "Feuilles d'audit : BALANCE, BALANCE_N1, CONTROLES, ANOMALIES",
-    ]
-    for s in sommaire:
-        g[f"B{r}"] = "• " + s
-        r += 1
-    r += 1
-    g[f"B{r}"] = ("Chaque poste et chaque ligne de note calculée porte une formule "
-                  "Excel pointant vers la feuille BALANCE : "
-                  "tout chiffre est retraçable jusqu'au compte qui l'alimente.")
-    g[f"B{r}"].font = F_NORMAL
-    g[f"B{r}"].alignment = AL_GAUCHE
-    g.merge_cells(f"B{r}:F{r+2}")
-    largeurs(g, {"A": 3, "B": 34, "C": 12, "D": 26, "E": 14, "F": 14})
+    if "Garde" in wb.sheetnames:
+        del wb["Garde"]
+    construire_garde_etafi(
+        wb, (entite, identifiant, exercice, duree),
+        bandeau="ETATS FINANCIERS NORMALISES\nDU SYSTEME COMPTABLE OHADA "
+                "(SYSCOHADA REVISE - AUDCIF)",
+        sous_bandeau="Entités soumises au Système normal",
+        systeme="SYSTEME NORMAL",
+        documents=["Fiches d'identification R1 à R4",
+                   "Bilan (actif et passif)",
+                   "Compte de résultat",
+                   "Tableau des flux de trésorerie",
+                   "Notes annexes 1 à 36"])
 
 
 def ajouter_controles(wb, bal, zh_val, avec_n1):
     if "CONTROLES" in wb.sheetnames:
         del wb["CONTROLES"]
     ctl = wb.create_sheet("CONTROLES")
-    n = len(bal)
+    n = max(len(bal), 1)
     ctl.append(["Contrôle", "Valeur", "Attendu"])
     style_entetes(ctl, 1, 1, 3)
+    B = q(NOM_BALANCE)
     lignes = [
-        ("Total solde débit balance", f"=SUM(BALANCE!F2:F{n+1})", ""),
-        ("Total solde crédit balance", f"=SUM(BALANCE!G2:G{n+1})", ""),
+        ("Total solde débit balance", f"=SUM({B}!F2:F{n+1})", ""),
+        ("Total solde crédit balance", f"=SUM({B}!G2:G{n+1})", ""),
         ("Écart balance (doit être 0)", "=B2-B3", 0),
         ("Total général actif net (BZ)", "=ACTIF!F40", ""),
         ("Total général passif (DZ)", "=PASSIF!D37", ""),
@@ -687,7 +765,7 @@ def ajouter_controles(wb, bal, zh_val, avec_n1):
         ("Trésorerie nette 31/12 recalculée depuis le bilan N", round(zh_val, 2), ""),
         ("Trésorerie nette 31/12 (TFT, poste ZH)", "='TFT'!H41", ""),
         ("Écart bilan - TFT trésorerie de clôture (0 si TFT complet)", "=B9-B10", 0),
-        ("— Recoupements notes annexes / états —", "", ""),
+        ("- Recoupements notes annexes / états -", "", ""),
         ("NOTE 4 total net vs immobilisations financières nettes (AR+AS)",
          "='NOTE 4'!B23-(ACTIF!F25+ACTIF!F26)", 0),
         ("NOTE 5 actif HAO net vs poste BA net", "='NOTE 5'!C19-ACTIF!F28", 0),
@@ -751,7 +829,11 @@ def main():
     ap.add_argument("--identifiant", default="")
     ap.add_argument("--exercice", default="")
     ap.add_argument("--duree", default="12")
+    ap.add_argument("--adresse", default="")
+    ap.add_argument("--sigle", default="")
+    ap.add_argument("--ntd", default="")
     args = ap.parse_args()
+    set_identite_etendue(args.adresse, args.sigle, args.ntd)
 
     rubs = charger_maquette(args.correspondance)
     bal, idx = lire_balance(args.balance_N)
@@ -788,24 +870,55 @@ def main():
         })
 
     wb = openpyxl.load_workbook(args.gabarit)
+    feuilles_gabarit = list(wb.sheetnames)
     injecter(wb, rubs, avec_n1)
     injecter_tft(wb, tft)
-
-    ecrire_balance(wb, "BALANCE", bal, rubs)
-    if avec_n1:
-        ecrire_balance(wb, "BALANCE_N1", bal1, rubs)
 
     notes_sn.injecter_notes(wb, avec_n1, avec_mvt,
                             entite=args.entite, identifiant=args.identifiant,
                             exercice=args.exercice, duree=args.duree)
+
+    # charte ETAFI : repeindre le gabarit officiel avant d'ajouter les
+    # feuilles propres (déjà à la charte)
+    reskin_etafi(wb, feuilles_gabarit)
+    reskin_tft_sn(wb)
+
+    ecrire_balance(wb, "BALANCE", bal, rubs)
+    if avec_n1:
+        ecrire_balance(wb, "BALANCE_N1", bal1, rubs)
 
     zh_val = zh_depuis_bilan(bal, rubs)
     ajouter_controles(wb, bal, zh_val, avec_n1)
     ajouter_anomalies(wb, anomalies)
     ecrire_garde(wb, args.entite, args.identifiant, args.exercice, args.duree,
                  avec_n1, avec_mvt)
+    ident = (args.entite, args.identifiant, args.exercice, args.duree)
+    construire_couverture(wb, ident, "LIASSE SYSTEME NORMAL")
+    construire_controle_balance(wb, avec_n1, len(bal), len(bal1 or []))
+    construire_bilan_paysage(
+        wb, ident,
+        {"feuille": "ACTIF", "lig_debut": min(ACTIF_ROW.values()),
+         "lig_fin": max(ACTIF_ROW.values()), "col_note": "C",
+         "libelle": "ACTIF",
+         "cols": [("BRUT", "D"), ("AMORT et DEPREC.", "E"), ("NET", "F"),
+                  ("NET N-1", "G")]},
+        {"feuille": "PASSIF", "lig_debut": min(PASSIF_ROW.values()),
+         "lig_fin": max(PASSIF_ROW.values()), "col_note": "C",
+         "libelle": "PASSIF",
+         "cols": [("NET", "D"), ("NET N-1", "E")]},
+        titre="BILAN", page_ref="BILAN SYSTEME NORMAL\nPAGE 1/1")
+    construire_table_commentaires(wb, parties_depuis_fiche_r4(wb), ident)
+    ordre = [NOM_BALANCE, NOM_BALANCE_N1, "CONTROLE BALANCE", "Couverture",
+             "Garde", "FICHE R1 ", "FICHE R2 ", "FICHE R3 ", "FICHE R4",
+             "Bilan paysage", "ACTIF", "PASSIF", "Compte de Résultat", "TFT"]
+    ordre += [n for n in wb.sheetnames
+              if n.upper().startswith("NOTE") and n not in ordre]
+    ordre += ["CODES", "TABLE COMMENTAIRE", "CONTROLES", "ANOMALIES"]
+    ordonner_feuilles(wb, ordre)
 
     retirer_tirets(wb)
+    appliquer_police_arial(wb)
+    numeroter_pages(wb)
     wb.save(args.sortie)
     print(f"Liasse écrite : {args.sortie}")
     print("Ouvrir dans Excel/LibreOffice (ou convertir via soffice --headless "

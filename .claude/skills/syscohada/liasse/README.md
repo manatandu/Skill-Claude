@@ -97,6 +97,43 @@ eux-mêmes et leurs subdivisions. Clause `sauf` = retranchement. Les
 formules SUMIF générées appliquent la même convention (critère jocker
 `"24*"` sur la colonne des comptes, jetons imbriqués dédoublonnés).
 
+
+## Présentation : charte graphique « ETAFI »
+
+Les classeurs produits reprennent la présentation d'une liasse fiscale
+professionnelle réelle (logiciel ETAFI, dépôt DGI), portée par
+`scripts/theme_etafi.py` :
+
+- **cartouche d'identification** en tête de chaque page (numéro « - n - »,
+  référence de page en haut à droite, dénomination sociale, adresse, sigle,
+  NCC, exercice clos, durée, NTD) — options CLI `--adresse`, `--sigle`,
+  `--ntd` en plus de `--entite`, `--identifiant`, `--exercice`, `--duree` ;
+- **palette exacte du modèle** : en-têtes de colonnes `CCFFFF`, rubriques
+  `FFFFCC`, totaux intermédiaires gris `C0C0C0`, totaux de section verts
+  `008000` (texte blanc), TOTAL GENERAL bleu nuit `000080`, titres d'états
+  en Arial Black vert, titres de notes en Arial Black `003366`, lignes
+  clefs du TFT sur `003366` ; corps Arial 9, filets fins, format comptable
+  `_-* #,##0 ...` (zéro affiché « - ») ;
+- **pages du modèle** : `Couverture` (bandeau violet « LIASSE ... »),
+  `Garde` (bandeau du référentiel, désignation de l'entité, documents
+  déposés, zone réservée à l'administration), `Fiche 1` (identification à
+  cases codes ZA...), `Fiche 2` (équipe/dirigeants), `CONTROLE BALANCE`
+  (équilibre soldes et mouvements, verdicts « Equilibre / Déséquilibre »),
+  `Bilan paysage` (actif et passif côte à côte, en liens vers les feuilles
+  du bilan), fiche récapitulative `NOTES ANNEXES` et `TABLE COMMENTAIRE`
+  (zone de commentaire libre par note) ;
+- **ordre des feuilles du modèle** : BALANCE N, BALANCE N-1, CONTROLE
+  BALANCE, Couverture, Garde, fiches, Bilan paysage, états, NOTES ANNEXES,
+  notes, TABLE COMMENTAIRE, puis CONTROLES et ANOMALIES (audit interne).
+
+Cas particulier du **Système normal** : les feuilles viennent du gabarit
+officiel OHADA et gardent leurs noms (`ACTIF`, `PASSIF`, `Compte de
+Résultat`, `TFT`, `NOTE x`, `FICHE R1` à `R4` qui tiennent lieu de Fiche 1
+/ Fiche 2 / fiche récapitulative) ; le moteur les **repeint** aux couleurs
+de la charte (`reskin_etafi`) sans toucher ni aux textes ni aux formules.
+Le SMT, construit de toutes pièces, applique la charte nativement
+(`Bilan-Actif`, `Bilan-Passif`, `Résultat`).
+
 ## Anomalies et numéros non conformes
 
 Voir `references/anomalies.md`. Rien n'est corrigé en silence : balance
