@@ -773,12 +773,37 @@ ENTETES_BALANCE = ["Compte", "Intitulé",
                    "Solde de clôture débit", "Solde de clôture crédit"]
 
 
+# Comptes de bilan (classes 1 à 5) et comptes de gestion (classes 6 à 8) :
+# AUDCIF art. 18 (« classes de comptes de situation » et « classes de
+# comptes de gestion ») et Titre VII, ch. 1 (« la comptabilité financière se
+# scinde en comptes de bilan (classes 1 à 5) et comptes de gestion (classes
+# 6 à 8). La classe 9 est réservée aux engagements hors bilan et à la
+# comptabilité analytique »). Même partage au SYCEBNL (Partie 2, ch. 1).
+# À la clôture, le compte 13 est débité des charges « par le crédit des
+# comptes de la classe 6 et des comptes débiteurs de la classe 8, pour
+# solde » et crédité des produits « par le débit des comptes de la classe 7
+# et des comptes créditeurs de la classe 8, pour solde » : les comptes de
+# gestion sont donc soldés à la clôture et n'ont aucun solde d'ouverture.
+# Le bloc d'ouverture de la balance ne reprend que le bilan d'ouverture.
+CLASSES_BILAN = ("1", "2", "3", "4", "5")
+
+
+def est_compte_bilan(compte):
+    """Vrai pour un compte de bilan (classes 1 à 5), faux pour un compte de
+    gestion (6 à 8) ou hors bilan / analytique (9)."""
+    c = str(compte or "").strip()
+    return bool(c) and c[0] in CLASSES_BILAN
+
+
 def _ouverture(l, avec_mvt):
-    """Solde d'ouverture d'un compte : les colonnes du fichier quand elles
-    existent, sinon reconstitué par clôture - mouvements quand la balance
-    porte ses mouvements (identité solde d'ouverture + mouvements = solde
-    de clôture). Jamais approximé au-delà : sans l'une ni l'autre source,
-    la colonne reste à zéro plutôt que d'inventer un chiffre."""
+    """Solde d'ouverture d'un compte de bilan : les colonnes du fichier
+    quand elles existent, sinon reconstitué par clôture - mouvements quand
+    la balance porte ses mouvements (identité solde d'ouverture +
+    mouvements = solde de clôture). Jamais approximé au-delà : sans l'une ni
+    l'autre source, la colonne reste à zéro plutôt que d'inventer un
+    chiffre. Hors classes 1 à 5, l'ouverture est nulle par construction."""
+    if not est_compte_bilan(l.get("compte")):
+        return 0.0, 0.0
     if l.get("od") or l.get("oc"):
         return round(l.get("od") or 0.0, 2), round(l.get("oc") or 0.0, 2)
     if not avec_mvt:
@@ -786,6 +811,34 @@ def _ouverture(l, avec_mvt):
     net = ((l.get("sd") or 0.0) - (l.get("sc") or 0.0)
            - ((l.get("md") or 0.0) - (l.get("mc") or 0.0)))
     return (round(net, 2), 0.0) if net >= 0 else (0.0, round(-net, 2))
+
+
+def anomalies_ouverture(bal, seuil=0.005):
+    """Comptes hors classes 1 à 5 porteurs d'un solde d'ouverture dans le
+    fichier source. Les comptes de gestion étant soldés à la clôture par le
+    compte 13, une ouverture sur l'un d'eux vient d'une colonne mal lue ou
+    d'une balance non clôturée : la feuille de balance la ramène à zéro et
+    l'anomalie le signale plutôt que de la reprendre en silence."""
+    out = []
+    for l in bal:
+        if est_compte_bilan(l.get("compte")):
+            continue
+        ouv = (l.get("od") or 0.0) - (l.get("oc") or 0.0)
+        if abs(ouv) <= seuil:
+            continue
+        out.append({
+            "gravite": "MINEUR", "compte": str(l.get("compte", "")),
+            "libelle": l.get("libelle", ""),
+            "probleme": f"Solde d'ouverture de {ouv:,.2f} sur un compte hors "
+                        "bilan (classes 6 à 8 : comptes de gestion, soldés à "
+                        "la clôture par le compte 13 ; classe 9 : hors "
+                        "bilan). Le bloc d'ouverture ne reprend que le bilan "
+                        "d'ouverture : cette valeur est ramenée à zéro.",
+            "solution": "Vérifier la colonne lue comme solde d'ouverture, ou "
+                        "reprendre la clôture de l'exercice précédent "
+                        "(virement des comptes de gestion au compte 13).",
+        })
+    return out
 
 
 def ecrire_feuille_balance(wb, nom, lignes):

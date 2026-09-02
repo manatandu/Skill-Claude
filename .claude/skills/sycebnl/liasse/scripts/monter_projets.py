@@ -52,6 +52,7 @@ from formules_sycebnl import (
     construire_fiche2, construire_controle_balance,
     construire_table_commentaires, construire_bilan_paysage,
     appliquer_police_arial, numeroter_pages, NOM_BALANCE, NOM_BALANCE_N1,
+    anomalies_ouverture,
 )
 import notes_sycebnl
 from notes_projets import NOTES_PROJETS
@@ -485,6 +486,7 @@ def main():
     set_lignes_max(max(len(bal), len(bal1 or [])) + 20)
 
     anomalies = detecter_anomalies(bal, rubs)
+    anomalies += anomalies_ouverture(bal)
     ident = (args.entite, args.identifiant, args.exercice, args.duree)
 
     wb = openpyxl.Workbook()

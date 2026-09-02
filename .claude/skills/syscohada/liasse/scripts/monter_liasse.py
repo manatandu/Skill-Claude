@@ -42,7 +42,7 @@ from lib_mapping import (
 from formules import (
     formule_tokens, formule_expr, retirer_tirets, q, nom_feuille,
     appliquer_filigranes,
-    ecrire_feuille_balance,
+    ecrire_feuille_balance, anomalies_ouverture,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, largeurs,
@@ -840,6 +840,7 @@ def main():
     print(f"Balance N : {len(bal)} comptes. Colonnes repérées : {idx}")
 
     anomalies = detecter_anomalies(bal, rubs)
+    anomalies += anomalies_ouverture(bal)
     avec_mvt = any((l.get("md") or l.get("mc")) for l in bal)
 
     bal1 = None

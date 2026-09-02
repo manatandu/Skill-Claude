@@ -38,7 +38,7 @@ from lib_mapping_sycebnl import (
 from formules_sycebnl import (
     formule_tokens, formule_expr, set_lignes_max, q, nom_feuille,
     appliquer_filigranes,
-    ecrire_feuille_balance,
+    ecrire_feuille_balance, anomalies_ouverture,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
@@ -595,6 +595,7 @@ def main():
     set_lignes_max(max(len(bal), len(bal1 or [])) + 20)
 
     anomalies = detecter_anomalies(bal, rubs)
+    anomalies += anomalies_ouverture(bal)
     ident = (args.entite, args.identifiant, args.exercice, args.duree)
 
     wb = openpyxl.Workbook()

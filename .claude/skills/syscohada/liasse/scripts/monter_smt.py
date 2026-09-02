@@ -38,7 +38,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from formules import (
     formule_tokens, set_lignes_max, q, nom_feuille,
     appliquer_filigranes,
-    ecrire_feuille_balance,
+    ecrire_feuille_balance, anomalies_ouverture,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
@@ -566,6 +566,7 @@ def main():
         ecrire_balance(wb, "BALANCE_N1", bal1)
 
     anomalies = detecter_anomalies_smt(bal)
+    anomalies += anomalies_ouverture(bal)
     construire_controles(wb, bal, avec_n1, kzc_row, infos_bilan)
     construire_controle_balance(wb, avec_n1, len(bal), len(bal1 or []))
 

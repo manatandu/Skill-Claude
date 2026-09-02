@@ -36,7 +36,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from formules_sycebnl import (
     formule_tokens, set_lignes_max, q, nom_feuille,
     appliquer_filigranes,
-    ecrire_feuille_balance,
+    ecrire_feuille_balance, anomalies_ouverture,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
@@ -522,6 +522,7 @@ def main():
     largeurs(ctl, {"A": 56, "B": 20, "C": 10})
 
     anomalies = detecter_anomalies_smt(bal)
+    anomalies += anomalies_ouverture(bal)
     an = wb.create_sheet("ANOMALIES")
     an.append(["Gravité", "Compte", "Intitulé", "Problème", "Solution proposée"])
     style_entetes(an, 1, 1, 5)

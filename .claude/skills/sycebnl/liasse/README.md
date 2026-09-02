@@ -164,12 +164,26 @@ Un **TOTAL GENERAL** ferme la feuille (un total par solde, en débit et en
 crédit) suivi d'une ligne de contrôle d'équilibre (débit - crédit, doit être
 0) ; la feuille `CONTROLE BALANCE` reprend les trois blocs avec leur verdict.
 
-Le solde d'ouverture vient des colonnes du fichier fourni quand elles
-existent (en-têtes reconnus : « solde initial », « à nouveau », « SI »,
-« ouverture »…), sinon il est reconstitué par *clôture - mouvements* quand la
-balance porte ses mouvements. Sans l'une ni l'autre source, la colonne reste
-à zéro : rien n'est inventé. Les formules des états et des notes visent
-toujours les colonnes de clôture (G/H) et de mouvement (E/F).
+Le solde d'ouverture ne porte que les **comptes de bilan (classes 1 à 5)**.
+La comptabilité financière se scinde en comptes de bilan (classes 1 à 5) et
+comptes de gestion (classes 6 à 8), la classe 9 étant réservée aux
+engagements hors bilan et à la comptabilité analytique (AUDCIF art. 18 et
+Titre VII, ch. 1 ; même partage au SYCEBNL, Partie 2, ch. 1). À la clôture,
+le compte 13 est débité des charges « par le crédit des comptes de la classe
+6 et des comptes débiteurs de la classe 8, **pour solde** » et crédité des
+produits « par le débit des comptes de la classe 7 et des comptes créditeurs
+de la classe 8, **pour solde** » : les comptes de gestion sont soldés et
+n'ont donc aucun solde d'ouverture. Le bloc d'ouverture reprend uniquement
+le **bilan d'ouverture**. Un solde d'ouverture porté par un compte de classe
+6 à 9 dans le fichier source est ramené à zéro et signalé dans `ANOMALIES`.
+
+Pour ces comptes de bilan, l'ouverture vient des colonnes du fichier fourni
+quand elles existent (en-têtes reconnus : « solde initial », « à nouveau »,
+« SI », « ouverture »…), sinon elle est reconstituée par *clôture -
+mouvements* quand la balance porte ses mouvements. Sans l'une ni l'autre
+source, la colonne reste à zéro : rien n'est inventé. Les formules des états
+et des notes visent toujours les colonnes de clôture (G/H) et de mouvement
+(E/F).
 
 Noms de feuilles des états : `Bilan-Actif`, `Bilan-Passif`, `Résultat`
 (associations et SMT), `Compte Exploitation` (projets), `TFT`,
