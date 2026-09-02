@@ -342,7 +342,7 @@ def format_montants(ws, cellules):
 # Nettoyage typographique, polices, numérotation
 # --------------------------------------------------------------------------
 
-FILIGRANE_NEANT = "NÉANT - NOTE NON RENSEIGNÉE"
+FILIGRANE_NEANT = "NÉANT"
 FILIGRANE_A_COMPLETER = "NOTE À COMPLÉTER"
 
 
@@ -363,7 +363,7 @@ def filigrane_note(ws, ligne_min=8):
     incliné, sous le corps de la note.
 
     - note chiffrable : le filigrane est une FORMULE qui n'affiche
-      « NÉANT - NOTE NON RENSEIGNÉE » que si la note ne porte aucun montant.
+      « NÉANT » que si la note ne porte aucun montant.
       Il disparaît de lui-même dès qu'un montant apparaît au recalcul ;
     - note déclarative (aucune colonne de montant) : texte fixe
       « NOTE À COMPLÉTER », à servir à la main."""
@@ -379,11 +379,14 @@ def filigrane_note(ws, ligne_min=8):
     col_max = max(ws.max_column, 5)
     fusion(ws, r, 1, r + 2, col_max)
     c = ws.cell(r, 1, valeur)
-    c.font = Font(name="Arial Black", size=26, bold=True, color="D9D9D9")
+    # mention courte (« NÉANT ») : corps plus grand, pour un vrai filigrane
+    mention = valeur.split('"')[1] if valeur.startswith("=") else valeur
+    corps = 48 if len(mention) <= 8 else 26
+    c.font = Font(name="Arial Black", size=corps, bold=True, color="D9D9D9")
     c.alignment = Alignment(horizontal="center", vertical="center",
                             textRotation=15)
     for rr in range(r, r + 3):
-        ws.row_dimensions[rr].height = 26
+        ws.row_dimensions[rr].height = 34 if corps > 26 else 26
     return r
 
 

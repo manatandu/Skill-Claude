@@ -161,9 +161,9 @@ Chaque feuille de note porte un filigrane (grand texte gris clair incliné,
 sous le corps de la note) :
 
 - **note chiffrable** : le filigrane est une **formule** qui n'affiche
-  « NÉANT - NOTE NON RENSEIGNÉE » que si la somme des colonnes de montants
-  de la note est nulle. Il disparaît de lui-même au recalcul dès qu'un
-  montant apparaît — pas d'entretien manuel ;
+  « NÉANT » que si la somme des colonnes de montants de la note est nulle.
+  Il disparaît de lui-même au recalcul dès qu'un montant apparaît — pas
+  d'entretien manuel ;
 - **note déclarative** (aucune colonne de montant : informations
   obligatoires, événements postérieurs, changements de méthodes...) :
   mention fixe « NOTE À COMPLÉTER », à servir en texte avant remise.
