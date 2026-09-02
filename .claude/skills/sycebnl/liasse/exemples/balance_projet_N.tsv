@@ -1,0 +1,23 @@
+Compte	Intitulé	Solde d'ouverture débit	Solde d'ouverture crédit	Mouvement débit	Mouvement crédit	Solde final débit	Solde final crédit
+2441	Matériel et mobilier de bureau	4000000	0	0	0	4000000	0
+2451	Matériel de transport automobile	5000000	0	3000000	0	8000000	0
+2751	Dépôts et cautionnements - loyers d'avance	500000	0	0	0	500000	0
+521	Banques locales	1800000	0	650000	0	2450000	0
+571	Caisse	100000	0	100000	0	200000	0
+162	Fonds affectés aux investissements - bailleurs	0	10000000	0	2500000	0	12500000
+462	Bailleurs - fonds d'administration	0	700000	0	500000	0	1200000
+4011	Fournisseurs	0	500000	0	300000	0	800000
+422	Personnel, rémunérations dues	0	150000	0	150000	0	300000
+431	Sécurité sociale	0	50000	0	100000	0	150000
+447	État, impôts retenus à la source	0	0	0	100000	0	100000
+601	Achats de biens et services liés à l'activité	0	0	2500000	0	2500000	0
+605	Eau, électricité et fournitures non stockées	0	0	800000	0	800000	0
+614	Transport du personnel	0	0	600000	0	600000	0
+622	Locations et charges locatives	0	0	1000000	0	1000000	0
+628	Frais de télécommunications	0	0	400000	0	400000	0
+637	Rémunérations de personnel extérieur	0	0	700000	0	700000	0
+641	Impôts et taxes directs	0	0	200000	0	200000	0
+661	Rémunérations directes personnel national	0	0	3600000	0	3600000	0
+664	Charges sociales	0	0	650000	0	650000	0
+702	Quote-part de fonds d'administration transférés	0	0	0	10500000	0	10500000
+771	Intérêts de prêts et créances diverses	0	0	0	50000	0	50000

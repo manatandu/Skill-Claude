@@ -1,0 +1,48 @@
+Compte	Intitulé	Solde d'ouverture débit	Solde d'ouverture crédit	Mouvement débit	Mouvement crédit	Solde final débit	Solde final crédit
+1011	Dotation non consomptible sans droit de reprise	0	10000000	0	0	0	10000000
+112	Réserves statutaires	0	1300000	0	100000	0	1400000
+121	Report à nouveau des excédents	0	350000	0	150000	0	500000
+131	Excédent de l'exercice	0	250000	250000	0	0	0
+1411	Subventions d'équipement - État	0	4400000	200000	0	0	4200000
+165	Fonds affectés à un projet spécifique	0	1200000	0	600000	0	1800000
+182	Emprunts auprès des établissements de crédit	0	2400000	400000	0	0	2000000
+191	Provisions pour litiges	0	300000	0	50000	0	350000
+2131	Logiciels	2000000	0	0	0	2000000	0
+2313	Bâtiments administratifs	15000000	0	0	0	15000000	0
+2441	Matériel et mobilier de bureau	3200000	0	800000	0	4000000	0
+2813	Amortissements logiciels	0	400000	0	200000	0	600000
+2831	Amortissements bâtiments	0	2400000	0	300000	0	2700000
+2844	Amortissements matériel et mobilier	0	1450000	0	250000	0	1700000
+341	Dons en nature non affectés	800000	0	200000	0	1000000	0
+4011	Fournisseurs	0	600000	0	100000	0	700000
+411	Adhérents	600000	0	100000	0	700000	0
+422	Personnel, rémunérations dues	0	350000	0	50000	0	400000
+431	Sécurité sociale	0	200000	0	50000	0	250000
+442	État, autres impôts et taxes	0	150000	0	50000	0	200000
+462	Bailleurs - fonds d'administration	0	250000	0	50000	0	300000
+4911	Dépréciations créances adhérents	0	120000	0	30000	0	150000
+521	Banques locales	4020000	0	330000	0	4350000	0
+571	Caisse	500000	0	100000	0	600000	0
+601	Achats de biens et services liés à l'activité	0	0	2200000	0	2200000	0
+604	Matières et fournitures consommables	0	0	700000	0	700000	0
+605	Eau, électricité et autres achats non stockés	0	0	620000	0	620000	0
+614	Transport du personnel	0	0	350000	0	350000	0
+622	Locations et charges locatives	0	0	1200000	0	1200000	0
+628	Frais de télécommunications	0	0	300000	0	300000	0
+636	Frais de recherche de fonds	0	0	200000	0	200000	0
+641	Impôts et taxes directs	0	0	130000	0	130000	0
+652	Subventions accordées par l'entité	0	0	500000	0	500000	0
+654	Dons en nature courants à distribuer	0	0	750000	0	750000	0
+661	Rémunérations directes personnel national	0	0	4070000	0	4070000	0
+664	Charges sociales	0	0	640000	0	640000	0
+671	Intérêts des emprunts	0	0	210000	0	210000	0
+6812	Dotations amortissements incorporelles	0	0	200000	0	200000	0
+6813	Dotations amortissements corporelles	0	0	550000	0	550000	0
+691	Dotations aux provisions d'exploitation	0	0	80000	0	80000	0
+701	Cotisations des adhérents	0	0	0	3200000	0	3200000
+7041	Dons	0	0	0	2500000	0	2500000
+7046	Mécénats	0	0	0	900000	0	900000
+7051	Ventes de marchandises	0	0	0	700000	0	700000
+706	Revenus des manifestations	0	0	0	950000	0	950000
+711	Subventions d'exploitation - État	0	0	0	4600000	0	4600000
+758	Produits divers	0	0	0	250000	0	250000

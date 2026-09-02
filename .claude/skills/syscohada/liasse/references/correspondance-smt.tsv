@@ -1,0 +1,28 @@
+etat	ref	rubrique	comptes	mode	note
+BILAN-ACTIF	SA1	Immobilisations (1)	2	nd	NOTE 1 ; net des amortissements et dépréciations (28/29 inclus dans le net de la classe 2) — le bilan SMT n'a pas de colonne amortissements
+BILAN-ACTIF	SA2	Stocks	3	nd	NOTE 2 ; net des dépréciations (39)
+BILAN-ACTIF	SA3	Clients et débiteurs divers	debits: 4 ; moins credits: 49, 590, 591 ; plus nd: 50, 51	mixte	NOTE 3 ; créances nettes des dépréciations de tiers et de titres/valeurs
+BILAN-ACTIF	SA4	Caisse	57	nd
+BILAN-ACTIF	SA5	Banque (en + ou en -)	52, 53, 54, 55, 56, 58 ; moins credits: 592, 593, 594	mixte	un solde bancaire créditeur (découvert) vient en moins : pas de poste banques créditrices au passif du SMT
+BILAN-ACTIF	SAZ	TOTAL ACTIF		formule	SA1+SA2+SA3+SA4+SA5
+BILAN-PASSIF	SP1	Compte exploitant	10, 11, 12, 14, 15	nc	NOTE 1 ; capital personnel (103), compte de l'exploitant (104), réserves, report à nouveau, subventions, provisions réglementées
+BILAN-PASSIF	SP2	Résultat exercice	13 + résultat du compte de résultat SMT	formule	la liasse boucle que la balance soit avant ou après affectation
+BILAN-PASSIF	SP3	Emprunt	16, 17, 18, 19	nc	emprunts, dettes de location-acquisition, dettes rattachées, provisions pour risques et charges
+BILAN-PASSIF	SP4	Fournisseurs et créditeurs divers	credits: 4 sauf 49 ; plus nc: 599	mixte	NOTE 3 ; les dépréciations de tiers (49) réduisent l'actif (SA3), elles ne sont pas des dettes
+BILAN-PASSIF	SPZ	TOTAL PASSIF		formule	SP1+SP2+SP3+SP4
+COMPTE-DE-RESULTAT	KA	Recettes sur ventes ou prestations de services	70	nc	NOTE 4
+COMPTE-DE-RESULTAT	KB	Autres recettes sur activités	71, 72, 75, 77, 78, 79, 82, 84, 86, 88	nc	NOTE 4 ; le compte 73 (variation stocks de produits) est reclassé sur la ligne variation des stocks
+COMPTE-DE-RESULTAT	KX	TOTAL DES RECETTES SUR PRODUITS (A)		formule	KA+KB
+COMPTE-DE-RESULTAT	JA	Dépenses sur achats	60 sauf 603	nd	NOTE 4 ; le compte 603 (variation stocks de biens achetés) est reclassé sur la ligne variation des stocks
+COMPTE-DE-RESULTAT	JB	Dépenses sur loyers	622	nd	NOTE 4
+COMPTE-DE-RESULTAT	JC	Dépenses sur salaires	66	nd	NOTE 4
+COMPTE-DE-RESULTAT	JD	Dépenses sur impôts et taxes	64, 89	nd	NOTE 4 ; l'impôt sur le résultat (89) est rattaché ici, seule ligne fiscale du modèle SMT
+COMPTE-DE-RESULTAT	JE	Charges d'intérêts	67	nd
+COMPTE-DE-RESULTAT	JF	Autres dépenses sur activités	61, 62 sauf 622, 63, 65, 81, 83, 87	nd	NOTE 4
+COMPTE-DE-RESULTAT	JX	TOTAL DÉPENSES SUR CHARGES (B)		formule	JA+JB+JC+JD+JE+JF
+COMPTE-DE-RESULTAT	KZ	SOLDE : Excédent (+) ou insuffisance (-) de recettes (C = A - B)		formule	KX-JX
+COMPTE-DE-RESULTAT	VA	Variation des stocks [N - (N-1)]	classe 3 (N) - classe 3 (N-1) ; sans N-1 : solde créditeur net 603 + solde créditeur net 73	formule	NOTE 2 ; se déduit de l'état des stocks
+COMPTE-DE-RESULTAT	VB	Variation des créances [N - (N-1)]	saisie manuelle (journal de suivi des créances, NOTE 3)	manuel	non déductible d'une balance de trésorerie : l'inventaire extra-comptable fait foi
+COMPTE-DE-RESULTAT	VC	Variation des dettes d'exploitation [N - (N-1)]	saisie manuelle (journal de suivi des dettes, NOTE 3)	manuel	idem
+COMPTE-DE-RESULTAT	JG	DOTATIONS AMORTISSEMENTS (F)	68, 69, 85	nd	amortissement linéaire sans prorata temporis (AUDCIF Titre X ch. 1)
+COMPTE-DE-RESULTAT	KZC	RÉSULTAT EXERCICE (G = C - D + E - F)		formule	KZ+VA+VB-VC-JG : lecture économique retenue (résultat = solde de trésorerie + variation des stocks + variation des créances - variation des dettes - dotations), identique au modèle SMT du SYCEBNL ; les lettres D/E du Titre X ne sont pas explicitement attribuées dans le texte officiel [texte officiel]
