@@ -160,6 +160,25 @@ source, la colonne reste à zéro : rien n'est inventé. Les formules des états
 et des notes visent toujours les colonnes de clôture (G/H) et de mouvement
 (E/F).
 
+### Enchaînement des deux exercices
+
+`BALANCE N-1` est une balance générale complète, pas un extrait de la balance
+N : elle porte son propre solde d'ouverture, ses propres mouvements et sa
+clôture, **comptes de gestion compris** — ce sont eux qui alimentent les
+colonnes N-1 du compte de résultat et des notes. Les deux exercices
+s'enchaînent ainsi :
+
+1. à la clôture de N-1, les comptes de gestion sont soldés par le compte 13,
+   qui porte alors le résultat de l'exercice ;
+2. ce résultat figure au **bilan d'ouverture de N**, au compte 13 des
+   capitaux propres — c'est la seule façon dont l'ouverture de N boucle ;
+3. au cours de N, il est affecté par les organes compétents — réserves (11), report à nouveau (12),
+   associés (465), et le compte
+   13 est soldé.
+
+Les balances d'exemple livrées suivent cet enchaînement de bout en bout : la
+liasse se lit sur deux exercices réels, pas sur un exercice dupliqué.
+
 Cas particulier du **Système normal** : les feuilles viennent du gabarit
 officiel OHADA et gardent leurs noms (`ACTIF`, `PASSIF`, `Compte de
 Résultat`, `TFT`, `NOTE x`, `FICHE R1` à `R4` qui tiennent lieu de Fiche 1

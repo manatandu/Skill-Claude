@@ -1,51 +1,53 @@
-Compte	Intitulé	Solde final débit	Solde final crédit	Mouvement débit	Mouvement crédit
-2131	Logiciels	5000000	0	0	0
-2411	Matériel et outillage	20000000	0	2000000	0
-2451	Matériel de transport	15000000	0	3000000	3000000
-2611	Titres de participation	3000000	0	0	0
-2751	Dépôts et cautionnements versés	1000000	0	0	0
-2813	Amortissements logiciels	0	2000000	0	500000
-2841	Amortissements matériel	0	8000000	0	2000000
-2845	Amortissements matériel de transport	0	5000000	2000000	3500000
-311	Marchandises	7000000	0	0	0
-391	Dépréciations des stocks de marchandises	0	500000	0	0
-4111	Clients	9000000	0	0	0
-4181	Clients, produits à recevoir	400000	0	0	0
-491	Dépréciations des comptes clients	0	700000	0	0
-4452	TVA récupérable sur achats	1200000	0	0	0
-5021	Actions	800000	0	0	0
-5211	Banque locale	6000000	0	1500000	7000000
-5711	Caisse siège social	1500000	0	0	0
-1011	Capital social	0	25000000	0	0
-111	Réserve légale	0	2000000	0	0
-121	Report à nouveau créditeur	0	1000000	0	0
-1411	Subventions d'équipement - État	0	3000000	200000	0
-162	Emprunts et dettes auprès des établissements de crédit	0	10000000	2000000	0
-191	Provisions pour litiges	0	800000	0	0
-401	Fournisseurs, dettes en compte	0	5600000	0	0
-422	Personnel, rémunérations dues	0	900000	0	0
-431	Sécurité sociale	0	600000	0	0
-4441	État, TVA due	0	700000	0	0
-441	État, impôt sur les bénéfices	0	1300000	0	0
-565	Escompte de crédits ordinaires	0	400000	0	0
-6011	Achats de marchandises dans la Région	30000000	0	0	0
-6031	Variation des stocks de marchandises	1000000	0	0	0
-6051	Eau	450000	0	0	0
-6052	Électricité	700000	0	0	0
-612	Transports sur ventes	800000	0	0	0
-622	Locations et charges locatives	2400000	0	0	0
-6281	Frais de télécommunications	600000	0	0	0
-641	Impôts et taxes directs	500000	0	0	0
-6582	Dons	200000	0	0	0
-661	Rémunérations directes versées au personnel national	8000000	0	0	0
-664	Charges sociales	1200000	0	0	0
-671	Intérêts des emprunts	900000	0	0	0
-681	Dotations aux amortissements d'exploitation	3500000	0	6000000	0
-691	Dotations aux provisions et dépréciations d'exploitation	300000	0	0	0
-812	Valeurs comptables des cessions d'immobilisations corporelles	1000000	0	1000000	0
-891	Impôts sur les bénéfices de l'exercice	1300000	0	0	0
-7011	Ventes de marchandises dans la Région	0	52000000	0	0
-707	Produits accessoires	0	1000000	0	0
-771	Intérêts de prêts et créances diverses	0	200000	0	0
-822	Produits de cessions d'immobilisations corporelles	0	1800000	0	1500000
-791	Reprises de provisions et dépréciations d'exploitation	0	250000	0	200000
+Compte	Intitulé	Solde d'ouverture débit	Solde d'ouverture crédit	Mouvement débit	Mouvement crédit	Solde final débit	Solde final crédit
+1011	Capital social	0	25000000	0	0	0	25000000
+111	Réserve légale	0	1800000	0	200000	0	2000000
+121	Report à nouveau créditeur	0	800000	0	200000	0	1000000
+131	Résultat net : bénéfice	0	1700000	1700000	0	0	0
+1411	Subventions d'équipement - État	0	3200000	200000	0	0	3000000
+162	Emprunts et dettes auprès des établissements de crédit	0	12000000	2000000	0	0	10000000
+191	Provisions pour litiges	0	700000	0	100000	0	800000
+2131	Logiciels	5000000	0	0	0	5000000	0
+2411	Matériel et outillage	18000000	0	2000000	0	20000000	0
+2451	Matériel de transport	15000000	0	3000000	3000000	15000000	0
+2611	Titres de participation	3000000	0	0	0	3000000	0
+2751	Dépôts et cautionnements versés	1000000	0	0	0	1000000	0
+2813	Amortissements logiciels	0	1500000	0	500000	0	2000000
+2841	Amortissements matériel	0	6000000	0	2000000	0	8000000
+2845	Amortissements matériel de transport	0	3500000	2000000	3500000	0	5000000
+311	Marchandises	8000000	0	0	1000000	7000000	0
+391	Dépréciations des stocks de marchandises	0	400000	0	100000	0	500000
+401	Fournisseurs, dettes en compte	0	4300000	0	1300000	0	5600000
+4111	Clients	7500000	0	1500000	0	9000000	0
+4181	Clients, produits à recevoir	0	0	400000	0	400000	0
+422	Personnel, rémunérations dues	0	800000	0	100000	0	900000
+431	Sécurité sociale	0	500000	0	100000	0	600000
+441	État, impôt sur les bénéfices	0	900000	0	400000	0	1300000
+4441	État, TVA due	0	600000	0	100000	0	700000
+4452	TVA récupérable sur achats	0	0	1200000	0	1200000	0
+465	Associés, dividendes à payer	0	0	1300000	1300000	0	0
+491	Dépréciations des comptes clients	0	600000	0	100000	0	700000
+5021	Actions	800000	0	0	0	800000	0
+5211	Banque locale	5000000	0	9300000	8300000	6000000	0
+565	Escompte de crédits ordinaires	0	0	0	400000	0	400000
+5711	Caisse siège social	1000000	0	500000	0	1500000	0
+6011	Achats de marchandises dans la Région	0	0	30000000	0	30000000	0
+6031	Variation des stocks de marchandises	0	0	1000000	0	1000000	0
+6051	Eau	0	0	450000	0	450000	0
+6052	Électricité	0	0	700000	0	700000	0
+612	Transports sur ventes	0	0	800000	0	800000	0
+622	Locations et charges locatives	0	0	2400000	0	2400000	0
+6281	Frais de télécommunications	0	0	600000	0	600000	0
+641	Impôts et taxes directs	0	0	500000	0	500000	0
+6582	Dons	0	0	200000	0	200000	0
+661	Rémunérations directes versées au personnel national	0	0	8000000	0	8000000	0
+664	Charges sociales	0	0	1200000	0	1200000	0
+671	Intérêts des emprunts	0	0	900000	0	900000	0
+681	Dotations aux amortissements d'exploitation	0	0	3500000	0	3500000	0
+691	Dotations aux provisions et dépréciations d'exploitation	0	0	300000	0	300000	0
+7011	Ventes de marchandises dans la Région	0	0	0	52000000	0	52000000
+707	Produits accessoires	0	0	0	1000000	0	1000000
+771	Intérêts de prêts et créances diverses	0	0	0	200000	0	200000
+791	Reprises de provisions et dépréciations d'exploitation	0	0	0	250000	0	250000
+812	Valeurs comptables des cessions d'immobilisations corporelles	0	0	1000000	0	1000000	0
+822	Produits de cessions d'immobilisations corporelles	0	0	0	1800000	0	1800000
+891	Impôts sur les bénéfices de l'exercice	0	0	1300000	0	1300000	0

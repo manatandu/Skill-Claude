@@ -209,6 +209,26 @@ Toutes les notes du référentiel restent présentes dans le classeur, y
 compris vides : la fiche NOTES ANNEXES sert à cocher A / N/A, et l'Acte
 uniforme demande de ne pas joindre à la remise les notes non documentées -
 le filigrane indique lesquelles.
+
+### Enchaînement des deux exercices
+
+`BALANCE N-1` est une balance générale complète, pas un extrait de la balance
+N : elle porte son propre solde d'ouverture, ses propres mouvements et sa
+clôture, **comptes de gestion compris** — ce sont eux qui alimentent les
+colonnes N-1 du compte de résultat et des notes. Les deux exercices
+s'enchaînent ainsi :
+
+1. à la clôture de N-1, les comptes de gestion sont soldés par le compte 13,
+   qui porte alors le résultat de l'exercice ;
+2. ce résultat figure au **bilan d'ouverture de N**, au compte 13 des
+   capitaux propres — c'est la seule façon dont l'ouverture de N boucle ;
+3. au cours de N, il est affecté par les organes compétents — réserves (11 ou 112), report à nouveau
+   (12), fonds affectés, et le compte
+   13 est soldé.
+
+Les balances d'exemple livrées suivent cet enchaînement de bout en bout : la
+liasse se lit sur deux exercices réels, pas sur un exercice dupliqué.
+
 ## Anomalies
 
 Voir `references/anomalies.md` : balance déséquilibrée, comptes non
