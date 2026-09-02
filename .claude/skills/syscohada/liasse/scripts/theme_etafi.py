@@ -838,6 +838,33 @@ def anomalies_ouverture(bal, seuil=0.005):
                         "reprendre la clôture de l'exercice précédent "
                         "(virement des comptes de gestion au compte 13).",
         })
+
+    # Bloc d'ouverture déséquilibré : la balance source ne vérifie pas
+    # l'identité ouverture + mouvements = clôture sur tous ses comptes de
+    # bilan. Signalé, jamais corrigé d'office — et sans effet sur les états,
+    # qui ne lisent que les colonnes de clôture et de mouvements.
+    avec_mvt = any((l.get("md") or l.get("mc")) for l in bal)
+    d = c = 0.0
+    for l in bal:
+        od, oc = _ouverture(l, avec_mvt)
+        d += od
+        c += oc
+    if (d or c) and abs(d - c) > 1.0:
+        out.append({
+            "gravite": "MINEUR", "compte": "", "libelle": "Bloc d'ouverture",
+            "probleme": f"Solde d'ouverture déséquilibré : débit {d:,.2f} ≠ "
+                        f"crédit {c:,.2f} (écart {d - c:,.2f}). La balance "
+                        "source ne vérifie pas l'identité ouverture + "
+                        "mouvements = clôture sur tous ses comptes de bilan "
+                        "(colonnes de mouvements partielles, ou exercice "
+                        "précédent non clôturé).",
+            "solution": "Sans effet sur les états : aucun montant du bilan, "
+                        "du compte de résultat, du TFT ou des notes ne lit "
+                        "les colonnes d'ouverture, présentées à titre "
+                        "indicatif. Pour les équilibrer, fournir une balance "
+                        "dont les colonnes d'ouverture ou de mouvements sont "
+                        "complètes.",
+        })
     return out
 
 

@@ -210,6 +210,31 @@ compris vides : la fiche NOTES ANNEXES sert à cocher A / N/A, et l'Acte
 uniforme demande de ne pas joindre à la remise les notes non documentées -
 le filigrane indique lesquelles.
 
+### Ce que le moteur fait d'une balance imparfaite
+
+Le moteur ne corrige jamais une balance et n'invente aucun chiffre : il lit
+ce qui est fourni et signale ce qui cloche.
+
+- **balance sans colonnes d'ouverture ni mouvements** (export le plus
+  courant, soldes de clôture seuls) : le bloc d'ouverture reste à zéro. Tous
+  les états sortent normalement — ils ne lisent que la clôture ;
+- **colonnes de mouvements partielles** : l'ouverture des comptes de bilan
+  est reconstituée par *clôture - mouvements* et peut alors ne pas
+  s'équilibrer. Une anomalie `Bloc d'ouverture` le dit explicitement, avec
+  l'écart chiffré ;
+- **ouverture portée par un compte de classe 6 à 9** : ramenée à zéro,
+  anomalie levée sur le compte concerné.
+
+Dans les trois cas, **aucun montant du bilan, du compte de résultat ou des
+notes ne change** : ces états ne lisent que les colonnes de clôture (G/H).
+Seul le TFT dépend aussi des colonnes de mouvements (E/F), et ses postes non
+calculables faute de mouvements sont déjà signalés un par un. Les colonnes
+d'ouverture ne sont lues que par la feuille `CONTROLE BALANCE`, dont c'est
+le rôle.
+
+Deux exécutions sur la même balance produisent des classeurs identiques au
+caractère près : l'ordre des jetons dans les formules est déterministe.
+
 ### Enchaînement des deux exercices
 
 `BALANCE N-1` est une balance générale complète, pas un extrait de la balance

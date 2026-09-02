@@ -77,8 +77,11 @@ def _termes(tokens, mode, feuille, signe):
 def _dedupe(tokens):
     """Écarte les jetons déjà englobés par un jeton plus court de la liste :
     « 12, 121, 129 » -> « 12 » (un SUMIF « 12* » capte déjà 121 et 129 ;
-    les additionner tous compterait les subdivisions deux fois)."""
-    ts = sorted(set(tokens), key=len)
+    les additionner tous compterait les subdivisions deux fois).
+
+    L'ordre est déterministe (longueur, puis numéro) : deux exécutions sur la
+    même balance rendent des formules identiques au caractère près."""
+    ts = sorted(set(tokens), key=lambda t: (len(t), t))
     out = []
     for t in ts:
         if not any(t != p and t.startswith(p) for p in out):
