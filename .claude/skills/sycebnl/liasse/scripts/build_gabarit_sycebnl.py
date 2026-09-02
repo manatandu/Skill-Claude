@@ -30,6 +30,7 @@ from formules_sycebnl import (formule_tokens, retirer_tirets, q,
                               construire_table_commentaires,
                               construire_bilan_paysage, ordonner_feuilles,
                               appliquer_police_arial, numeroter_pages,
+                              appliquer_filigranes,
                               NOM_BALANCE, NOM_BALANCE_N1)
 import monter_etats_sycebnl as m
 import notes_sycebnl
@@ -110,6 +111,7 @@ def main():
                       + [spec["feuille"] for spec in
                          notes_sycebnl.NOTES_ASSOCIATIONS]
                       + ["TABLE COMMENTAIRE", "CONTROLES", "ANOMALIES"])
+    appliquer_filigranes(wb)
     retirer_tirets(wb)
     appliquer_police_arial(wb)
     numeroter_pages(wb)

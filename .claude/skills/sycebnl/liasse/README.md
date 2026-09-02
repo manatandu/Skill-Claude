@@ -177,6 +177,24 @@ Noms de feuilles des états : `Bilan-Actif`, `Bilan-Passif`, `Résultat`
 (projets). Toutes les références croisées (contrôles, note 33, liens CH/CC)
 sont générées avec ces noms.
 
+
+## Filigrane des notes non renseignées
+
+Chaque feuille de note porte un filigrane (grand texte gris clair incliné,
+sous le corps de la note) :
+
+- **note chiffrable** : le filigrane est une **formule** qui n'affiche
+  « NÉANT - NOTE NON RENSEIGNÉE » que si la somme des colonnes de montants
+  de la note est nulle. Il disparaît de lui-même au recalcul dès qu'un
+  montant apparaît — pas d'entretien manuel ;
+- **note déclarative** (aucune colonne de montant : informations
+  obligatoires, événements postérieurs, changements de méthodes...) :
+  mention fixe « NOTE À COMPLÉTER », à servir en texte avant remise.
+
+Toutes les notes du référentiel restent présentes dans le classeur, y
+compris vides : la fiche NOTES ANNEXES sert à cocher A / N/A, et l'Acte
+uniforme demande de ne pas joindre à la remise les notes non documentées -
+le filigrane indique lesquelles.
 ## Anomalies
 
 Voir `references/anomalies.md` : balance déséquilibrée, comptes non

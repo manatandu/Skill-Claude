@@ -37,6 +37,7 @@ from lib_mapping_sycebnl import (
 )
 from formules_sycebnl import (
     formule_tokens, formule_expr, set_lignes_max, q, nom_feuille,
+    appliquer_filigranes,
     ecrire_feuille_balance,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
@@ -670,6 +671,7 @@ def main():
                       + [spec["feuille"] for spec in
                          notes_sycebnl.NOTES_ASSOCIATIONS]
                       + ["TABLE COMMENTAIRE", "CONTROLES", "ANOMALIES"])
+    appliquer_filigranes(wb)
     retirer_tirets(wb)
     appliquer_police_arial(wb)
     numeroter_pages(wb)

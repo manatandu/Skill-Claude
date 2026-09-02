@@ -154,6 +154,24 @@ de la charte (`reskin_etafi`) sans toucher ni aux textes ni aux formules.
 Le SMT, construit de toutes pièces, applique la charte nativement
 (`Bilan-Actif`, `Bilan-Passif`, `Résultat`).
 
+
+## Filigrane des notes non renseignées
+
+Chaque feuille de note porte un filigrane (grand texte gris clair incliné,
+sous le corps de la note) :
+
+- **note chiffrable** : le filigrane est une **formule** qui n'affiche
+  « NÉANT - NOTE NON RENSEIGNÉE » que si la somme des colonnes de montants
+  de la note est nulle. Il disparaît de lui-même au recalcul dès qu'un
+  montant apparaît — pas d'entretien manuel ;
+- **note déclarative** (aucune colonne de montant : informations
+  obligatoires, événements postérieurs, changements de méthodes...) :
+  mention fixe « NOTE À COMPLÉTER », à servir en texte avant remise.
+
+Toutes les notes du référentiel restent présentes dans le classeur, y
+compris vides : la fiche NOTES ANNEXES sert à cocher A / N/A, et l'Acte
+uniforme demande de ne pas joindre à la remise les notes non documentées -
+le filigrane indique lesquelles.
 ## Anomalies et numéros non conformes
 
 Voir `references/anomalies.md`. Rien n'est corrigé en silence : balance

@@ -41,6 +41,7 @@ from lib_mapping import (
 )
 from formules import (
     formule_tokens, formule_expr, retirer_tirets, q, nom_feuille,
+    appliquer_filigranes,
     ecrire_feuille_balance,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
@@ -919,6 +920,7 @@ def main():
     ordre += ["CODES", "TABLE COMMENTAIRE", "CONTROLES", "ANOMALIES"]
     ordonner_feuilles(wb, ordre)
 
+    appliquer_filigranes(wb)
     retirer_tirets(wb)
     appliquer_police_arial(wb)
     numeroter_pages(wb)

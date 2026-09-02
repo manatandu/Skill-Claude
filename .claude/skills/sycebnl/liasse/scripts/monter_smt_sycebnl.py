@@ -35,6 +35,7 @@ import openpyxl
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from formules_sycebnl import (
     formule_tokens, set_lignes_max, q, nom_feuille,
+    appliquer_filigranes,
     ecrire_feuille_balance,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
@@ -574,6 +575,7 @@ def main():
                            "NOTE 3 CREANCES-DETTES",
                            "NOTE 4 JOURNAL TRESORERIE", "NOTE 5 DOTATIONS",
                            "TABLE COMMENTAIRE", "CONTROLES", "ANOMALIES"])
+    appliquer_filigranes(wb)
     retirer_tirets(wb)
     appliquer_police_arial(wb)
     numeroter_pages(wb)

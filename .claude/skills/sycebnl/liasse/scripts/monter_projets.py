@@ -41,6 +41,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from lib_mapping_sycebnl import charger_maquette, compte_dans_expr
 from formules_sycebnl import (
     formule_tokens, formule_expr, set_lignes_max, q, nom_feuille,
+    appliquer_filigranes,
     F_TITRE, F_SOUS_TITRE, F_ENTETE, F_NORMAL, F_GRAS,
     R_TITRE, R_ENTETE, R_BANDE, R_TOTAL, BORD_FIN, AL_CENTRE, AL_GAUCHE,
     FMT_MONTANT, style_entetes, style_zone_donnees, style_ligne_total,
@@ -560,6 +561,7 @@ def main():
                            NOM_ACTIF, NOM_PASSIF, CR_NOM, "NOTES ANNEXES"]
                       + [spec["feuille"] for spec in NOTES_PROJETS]
                       + ["TABLE COMMENTAIRE", "CONTROLES", "ANOMALIES"])
+    appliquer_filigranes(wb)
     retirer_tirets(wb)
     appliquer_police_arial(wb)
     numeroter_pages(wb)

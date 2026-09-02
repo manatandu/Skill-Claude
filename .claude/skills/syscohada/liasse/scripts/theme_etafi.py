@@ -342,6 +342,65 @@ def format_montants(ws, cellules):
 # Nettoyage typographique, polices, numérotation
 # --------------------------------------------------------------------------
 
+FILIGRANE_NEANT = "NÉANT - NOTE NON RENSEIGNÉE"
+FILIGRANE_A_COMPLETER = "NOTE À COMPLÉTER"
+
+
+def _colonnes_montants(ws, ligne_min=8):
+    """Plages des colonnes de montants d'une note : { colonne : (r1, r2) }."""
+    cols = {}
+    for row in ws.iter_rows(min_row=ligne_min):
+        for c in row:
+            fmt = c.number_format or ""
+            if fmt == FMT_MONTANT or "#,##0" in fmt:
+                r1, r2 = cols.get(c.column, (c.row, c.row))
+                cols[c.column] = (min(r1, c.row), max(r2, c.row))
+    return cols
+
+
+def filigrane_note(ws, ligne_min=8):
+    """Pose un filigrane sur une feuille de note : grand texte gris clair
+    incliné, sous le corps de la note.
+
+    - note chiffrable : le filigrane est une FORMULE qui n'affiche
+      « NÉANT - NOTE NON RENSEIGNÉE » que si la note ne porte aucun montant.
+      Il disparaît de lui-même dès qu'un montant apparaît au recalcul ;
+    - note déclarative (aucune colonne de montant) : texte fixe
+      « NOTE À COMPLÉTER », à servir à la main."""
+    cols = _colonnes_montants(ws, ligne_min)
+    fin = ws.max_row
+    if cols:
+        plages = ",".join(f"{get_column_letter(c)}{r1}:{get_column_letter(c)}{r2}"
+                          for c, (r1, r2) in sorted(cols.items()))
+        valeur = f'=IF(SUM({plages})=0,"{FILIGRANE_NEANT}","")'
+    else:
+        valeur = FILIGRANE_A_COMPLETER
+    r = fin + 2
+    col_max = max(ws.max_column, 5)
+    fusion(ws, r, 1, r + 2, col_max)
+    c = ws.cell(r, 1, valeur)
+    c.font = Font(name="Arial Black", size=26, bold=True, color="D9D9D9")
+    c.alignment = Alignment(horizontal="center", vertical="center",
+                            textRotation=15)
+    for rr in range(r, r + 3):
+        ws.row_dimensions[rr].height = 26
+    return r
+
+
+def appliquer_filigranes(wb, feuilles=None):
+    """Filigrane sur toutes les feuilles de notes du classeur (celles dont
+    le nom commence par NOTE, plus les journaux de suivi)."""
+    poses = []
+    for ws in wb.worksheets:
+        t = ws.title.upper()
+        if feuilles is not None and ws.title not in feuilles:
+            continue
+        if t.startswith("NOTE") or t.startswith("JOURNAUX"):
+            filigrane_note(ws)
+            poses.append(ws.title)
+    return poses
+
+
 def retirer_tirets(wb):
     """Remplace tirets cadratins (—) et demi-cadratins (–) par un tiret
     simple dans toutes les cellules texte : aucun « — » dans les livrables."""
